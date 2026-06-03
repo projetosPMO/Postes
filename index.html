@@ -375,7 +375,7 @@ function parsePagos(text, mesLabel) {
     const row = rows[i];
     const cidade = row[4] ? row[4].trim() : '';
     const estado = row[5] ? row[5].trim() : '';
-    if (!cidade) continue;
+    if (!cidade || cidade.toUpperCase().includes('TOTAL')) continue;
     const qty = parseInt(row[abrStart]) || 0;
     if (!cityMap[cidade]) cityMap[cidade] = { cidade, estado, qtdPago: 0 };
     cityMap[cidade].qtdPago += qty;
