@@ -11,17 +11,32 @@
 
   header {
     background: linear-gradient(135deg, #1e3a5f 0%, #0e2238 100%);
-    padding: 20px 32px;
+    padding: 16px 32px;
     display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 2px solid #2563eb;
+    border-bottom: 2px solid #2563eb; flex-wrap: wrap; gap: 12px;
   }
-  header h1 { font-size: 1.4rem; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
-  header .subtitle { font-size: 0.8rem; color: #93c5fd; margin-top: 2px; }
-  header .badge { background: #2563eb; color: #fff; font-size: 0.72rem; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
+  header h1 { font-size: 1.3rem; font-weight: 700; color: #fff; }
+  header .subtitle { font-size: 0.78rem; color: #93c5fd; margin-top: 2px; }
+
+  .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  select.mes-select {
+    background: #1e3a5f; border: 1px solid #2563eb; color: #e2e8f0;
+    padding: 7px 14px; border-radius: 8px; font-size: 0.82rem; outline: none; cursor: pointer;
+  }
+  .btn-atualizar {
+    background: #2563eb; color: #fff; border: none; padding: 8px 20px;
+    border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; gap: 6px; transition: background 0.15s;
+  }
+  .btn-atualizar:hover { background: #1d4ed8; }
+  .btn-atualizar:disabled { background: #1e3a5f; color: #64748b; cursor: default; }
+  .spin { display: inline-block; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .last-update { font-size: 0.72rem; color: #64748b; }
 
   /* Tabs */
-  .tab-nav { display: flex; gap: 0; background: #0f1117; border-bottom: 2px solid #1e3a5f; padding: 0 32px; }
-  .tab-btn { padding: 12px 24px; font-size: 0.85rem; font-weight: 600; color: #64748b; background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .tab-nav { display: flex; background: #0f1117; border-bottom: 2px solid #1e3a5f; padding: 0 32px; }
+  .tab-btn { padding: 11px 22px; font-size: 0.84rem; font-weight: 600; color: #64748b; background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
   .tab-btn:hover { color: #93c5fd; }
   .tab-btn.active { color: #60a5fa; border-bottom-color: #2563eb; }
   .tab-panel { display: none; }
@@ -29,60 +44,55 @@
 
   .main { padding: 24px 32px; }
 
-  /* KPI Cards */
+  /* Loading overlay */
+  #loadingOverlay {
+    position: fixed; inset: 0; background: #0f1117cc; z-index: 100;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  }
+  #loadingOverlay .load-text { font-size: 1rem; color: #93c5fd; }
+  .loader { width: 40px; height: 40px; border: 4px solid #1e3a5f; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+  /* Error banner */
+  #errorBanner { display: none; background: #450a0a; border: 1px solid #ef4444; color: #fca5a5; padding: 12px 20px; border-radius: 8px; margin-bottom: 16px; font-size: 0.84rem; }
+
+  /* KPI */
   .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
   .kpi { background: #1a2235; border-radius: 12px; padding: 20px 24px; border: 1px solid #1e3a5f; }
   .kpi .label { font-size: 0.72rem; text-transform: uppercase; color: #64748b; letter-spacing: 1px; margin-bottom: 8px; }
-  .kpi .value { font-size: 2rem; font-weight: 700; color: #60a5fa; line-height: 1; }
+  .kpi .value { font-size: 1.9rem; font-weight: 700; color: #60a5fa; line-height: 1; }
   .kpi .sub { font-size: 0.76rem; color: #475569; margin-top: 6px; }
 
-  /* Charts row */
+  /* Charts */
   .charts-row { display: grid; grid-template-columns: 1fr 320px; gap: 16px; margin-bottom: 24px; }
+  .charts-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
   .card { background: #1a2235; border-radius: 12px; padding: 20px; border: 1px solid #1e3a5f; }
-  .card h2 { font-size: 0.85rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+  .card h2 { font-size: 0.84rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
 
-  .bar-chart-wrap { height: 380px; position: relative; }
-  .donut-wrap { height: 380px; display: flex; flex-direction: column; justify-content: center; }
-
-  /* Estado legend */
-  .estado-legend { margin-top: 16px; }
-  .estado-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1e3a5f; font-size: 0.78rem; }
-  .estado-item:last-child { border-bottom: none; }
-  .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
-  .estado-name { display: flex; align-items: center; color: #cbd5e1; }
-  .estado-val { color: #60a5fa; font-weight: 600; }
-
-  /* Search & Table */
-  .table-section { background: #1a2235; border-radius: 12px; padding: 20px; border: 1px solid #1e3a5f; }
+  /* Table */
+  .table-section { background: #1a2235; border-radius: 12px; padding: 20px; border: 1px solid #1e3a5f; margin-bottom: 24px; }
   .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
-  .table-header h2 { font-size: 0.85rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-
+  .table-header h2 { font-size: 0.84rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
   .filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  input[type="text"], select {
+  input[type="text"], select.filter-sel {
     background: #0f1117; border: 1px solid #2d3748; color: #e2e8f0;
     padding: 6px 12px; border-radius: 8px; font-size: 0.82rem; outline: none;
   }
-  input[type="text"] { width: 220px; }
-  input[type="text"]:focus, select:focus { border-color: #2563eb; }
+  input[type="text"] { width: 200px; }
+  input[type="text"]:focus, select.filter-sel:focus { border-color: #2563eb; }
 
   table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  thead th { background: #0f1117; color: #64748b; text-align: left; padding: 10px 12px; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px; cursor: pointer; user-select: none; }
+  thead th { background: #0f1117; color: #64748b; text-align: left; padding: 10px 12px; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.5px; cursor: pointer; user-select: none; white-space: nowrap; }
   thead th:hover { color: #93c5fd; }
-  tbody tr { border-bottom: 1px solid #1e2d40; transition: background 0.15s; }
+  tbody tr { border-bottom: 1px solid #1e2d40; transition: background 0.12s; }
   tbody tr:hover { background: #1e3050; }
-  tbody td { padding: 10px 12px; color: #cbd5e1; }
-  tbody td.cidade { font-weight: 600; color: #e2e8f0; }
-  tbody td.num { text-align: right; font-weight: 600; color: #60a5fa; font-variant-numeric: tabular-nums; }
+  tbody td { padding: 9px 12px; color: #cbd5e1; }
+  td.cidade { font-weight: 600; color: #e2e8f0; }
+  td.num { text-align: right; font-weight: 600; color: #60a5fa; font-variant-numeric: tabular-nums; }
   .rank { color: #475569; font-size: 0.75rem; }
-
-  /* Tipo badge */
   .tipo-badge { font-size: 0.68rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; display: inline-block; }
   .tipo-FTTH { background: #1e3a5f; color: #60a5fa; }
   .tipo-BACKBONE { background: #2d1b4e; color: #a78bfa; }
-  .tipo-other { background: #1e2d1a; color: #4ade80; }
-
-  /* Progress bar in table */
-  .bar-wrap { width: 100px; height: 6px; background: #1e3a5f; border-radius: 3px; display: inline-block; vertical-align: middle; margin-left: 8px; }
+  .bar-wrap { width: 80px; height: 6px; background: #1e3a5f; border-radius: 3px; display: inline-block; vertical-align: middle; margin-left: 6px; }
   .bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #2563eb, #60a5fa); }
 
   /* Pagination */
@@ -93,17 +103,43 @@
   .page-btns button.active { background: #2563eb; color: #fff; }
   .page-btns button:disabled { opacity: 0.3; cursor: default; }
 
-  .data-ref { text-align: right; font-size: 0.72rem; color: #475569; margin-top: 20px; }
+  /* Estado legend */
+  .estado-legend .estado-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1e3a5f; font-size: 0.78rem; }
+  .estado-legend .estado-item:last-child { border-bottom: none; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
+  .estado-name { display: flex; align-items: center; color: #cbd5e1; }
+  .estado-val { color: #60a5fa; font-weight: 600; }
+
+  .data-ref { text-align: right; font-size: 0.72rem; color: #475569; margin-top: 8px; }
+
+  /* Status badges */
+  .badge-ok      { font-size:.68rem;padding:2px 8px;border-radius:4px;font-weight:600;background:#064e3b;color:#10b981; display:inline-block; }
+  .badge-parcial { font-size:.68rem;padding:2px 8px;border-radius:4px;font-weight:600;background:#451a03;color:#f59e0b; display:inline-block; }
+  .badge-critico { font-size:.68rem;padding:2px 8px;border-radius:4px;font-weight:600;background:#450a0a;color:#ef4444; display:inline-block; }
+  .badge-zero    { font-size:.68rem;padding:2px 8px;border-radius:4px;font-weight:600;background:#1e1e1e;color:#64748b; display:inline-block; }
 </style>
 </head>
 <body>
 
+<div id="loadingOverlay">
+  <div class="loader"></div>
+  <div class="load-text">Carregando dados das planilhas...</div>
+</div>
+
 <header>
   <div>
     <h1>📡 Postes por Município — PROXXIMA Telecom</h1>
-    <div class="subtitle">Fonte: Poste totais por cidade · Atualizado em 30/04/2026</div>
+    <div class="subtitle">Dados ao vivo · Google Sheets</div>
   </div>
-  <div class="badge">Abr/2026</div>
+  <div class="header-controls">
+    <select class="mes-select" id="mesSelect" onchange="onMesChange()">
+      <option value="">Carregando meses...</option>
+    </select>
+    <button class="btn-atualizar" id="btnAtualizar" onclick="loadAll()">
+      <span id="refreshIcon">🔄</span> Atualizar
+    </button>
+    <span class="last-update" id="lastUpdate"></span>
+  </div>
 </header>
 
 <div class="tab-nav">
@@ -112,706 +148,564 @@
 </div>
 
 <div class="main">
-<div class="tab-panel active" id="tab-postes">
+  <div id="errorBanner"></div>
 
-  <!-- KPIs -->
-  <div class="kpi-row">
-    <div class="kpi">
-      <div class="label">Total de Postes em Uso</div>
-      <div class="value" id="kpi-total">219.357</div>
-      <div class="sub">Referência: 30/04/2026</div>
+  <!-- TAB 1: Postes -->
+  <div class="tab-panel active" id="tab-postes">
+    <div class="kpi-row">
+      <div class="kpi"><div class="label">Total Postes em Uso</div><div class="value" id="k1">—</div><div class="sub" id="k1sub">—</div></div>
+      <div class="kpi"><div class="label">Municípios Atendidos</div><div class="value" id="k2">—</div><div class="sub">Com postes ativos</div></div>
+      <div class="kpi"><div class="label">Estados</div><div class="value" id="k3">—</div><div class="sub" id="k3sub">—</div></div>
+      <div class="kpi"><div class="label">Maior Município</div><div class="value" id="k4" style="font-size:1rem;padding-top:6px">—</div><div class="sub" id="k4sub">—</div></div>
     </div>
-    <div class="kpi">
-      <div class="label">Municípios Atendidos</div>
-      <div class="value" id="kpi-cidades">—</div>
-      <div class="sub">Com postes ativos</div>
+
+    <div class="charts-row">
+      <div class="card">
+        <h2>Top 20 Municípios por Postes</h2>
+        <div style="height:380px;position:relative"><canvas id="barChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Postes por Estado</h2>
+        <div style="height:220px;position:relative"><canvas id="donutChart"></canvas></div>
+        <div class="estado-legend" id="estadoLegend" style="margin-top:12px"></div>
+      </div>
     </div>
-    <div class="kpi">
-      <div class="label">Estados</div>
-      <div class="value">5</div>
-      <div class="sub">PB · RN · BA · PE · CE</div>
+
+    <div class="table-section">
+      <div class="table-header">
+        <h2>Todos os Municípios</h2>
+        <div class="filters">
+          <input type="text" id="searchInput" placeholder="🔍 Buscar município...">
+          <select class="filter-sel" id="cidadeFilter" style="width:220px"><option value="">Todos os municípios</option></select>
+          <select class="filter-sel" id="estadoFilter"><option value="">Todos os estados</option></select>
+          <select class="filter-sel" id="tipoFilter"><option value="">Todos os tipos</option><option value="FTTH">FTTH</option><option value="BACKBONE">BACKBONE</option></select>
+        </div>
+      </div>
+      <table><thead><tr>
+        <th onclick="sortBy('rank')">#</th>
+        <th onclick="sortBy('cidade')">Município ↕</th>
+        <th onclick="sortBy('estado')">Estado ↕</th>
+        <th onclick="sortBy('tipo')">Tipo</th>
+        <th onclick="sortBy('total')" style="text-align:right">Postes ↕</th>
+        <th>Participação</th>
+      </tr></thead><tbody id="tableBody"></tbody></table>
+      <div class="pagination"><span id="pageInfo"></span><div class="page-btns"><button id="prevBtn" onclick="changePage(-1)">‹</button><span id="pageNums"></span><button id="nextBtn" onclick="changePage(1)">›</button></div></div>
     </div>
-    <div class="kpi">
-      <div class="label">Maior Município</div>
-      <div class="value" style="font-size:1.1rem; padding-top:4px;">Campina Grande</div>
-      <div class="sub">22.443 postes · PB</div>
-    </div>
+    <div class="data-ref" id="ref1">—</div>
   </div>
 
-  <!-- Charts -->
-  <div class="charts-row">
-    <div class="card">
-      <h2>Top 20 Municípios por Postes</h2>
-      <div class="bar-chart-wrap">
-        <canvas id="barChart"></canvas>
+  <!-- TAB 2: Comparação -->
+  <div class="tab-panel" id="tab-comp">
+    <div class="kpi-row">
+      <div class="kpi"><div class="label">Total Postes em Uso</div><div class="value" id="ck1">—</div><div class="sub" id="ck1sub">—</div></div>
+      <div class="kpi"><div class="label">Total Postes Pagos</div><div class="value" id="ck2" style="color:#10b981">—</div><div class="sub">Contratos ativos</div></div>
+      <div class="kpi"><div class="label">% Regularizado</div><div class="value" id="ck3" style="color:#f59e0b">—</div><div class="sub">Pagos / Usados</div></div>
+      <div class="kpi"><div class="label">Sem Pagamento</div><div class="value" id="ck4" style="color:#ef4444">—</div><div class="sub">Sem contrato registrado</div></div>
+    </div>
+
+    <div class="charts-row-2">
+      <div class="card">
+        <h2>Usado vs Pago por Estado</h2>
+        <div style="height:280px;position:relative"><canvas id="compEstadoChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>% Regularizado por Estado</h2>
+        <div style="height:280px;position:relative"><canvas id="pctEstadoChart"></canvas></div>
       </div>
     </div>
-    <div class="card">
-      <h2>Postes por Estado</h2>
-      <div class="donut-wrap">
-        <canvas id="donutChart" style="max-height:220px;"></canvas>
-        <div class="estado-legend" id="estadoLegend"></div>
+
+    <div class="table-section">
+      <div class="table-header">
+        <h2>Comparativo por Município</h2>
+        <div class="filters">
+          <input type="text" id="compSearch" placeholder="🔍 Buscar município...">
+          <select class="filter-sel" id="compEstadoFilter"><option value="">Todos os estados</option></select>
+          <select class="filter-sel" id="compStatusFilter">
+            <option value="">Todos</option>
+            <option value="ok">≥ 90% regular</option>
+            <option value="parcial">30–89% parcial</option>
+            <option value="critico">&lt; 30% crítico</option>
+            <option value="zero">Sem pagamento</option>
+          </select>
+        </div>
       </div>
+      <table><thead><tr>
+        <th onclick="compSort('cidade')">Município ↕</th>
+        <th onclick="compSort('estado')">Estado ↕</th>
+        <th onclick="compSort('usados')" style="text-align:right">Usados ↕</th>
+        <th onclick="compSort('pagos')" style="text-align:right">Pagos ↕</th>
+        <th onclick="compSort('diff')" style="text-align:right">Diferença ↕</th>
+        <th onclick="compSort('pct')" style="text-align:right">% Pago ↕</th>
+        <th>Status</th>
+      </tr></thead><tbody id="compBody"></tbody></table>
+      <div class="pagination"><span id="compPageInfo"></span><div class="page-btns"><button id="compPrev" onclick="compChangePage(-1)">‹</button><span id="compPageNums"></span><button id="compNext" onclick="compChangePage(1)">›</button></div></div>
     </div>
+    <div class="data-ref" id="ref2">—</div>
   </div>
-
-  <!-- Table -->
-  <div class="table-section">
-    <div class="table-header">
-      <h2>Todos os Municípios</h2>
-      <div class="filters">
-        <input type="text" id="searchInput" placeholder="🔍 Buscar município...">
-        <select id="cidadeFilter" style="width:240px">
-          <option value="">Todos os municípios</option>
-        </select>
-        <select id="estadoFilter">
-          <option value="">Todos os estados</option>
-          <option value="PB">Paraíba (PB)</option>
-          <option value="RN">Rio Grande do Norte (RN)</option>
-          <option value="BA">Bahia (BA)</option>
-          <option value="PE">Pernambuco (PE)</option>
-          <option value="CE">Ceará (CE)</option>
-        </select>
-        <select id="tipoFilter">
-          <option value="">Todos os tipos</option>
-          <option value="FTTH">FTTH</option>
-          <option value="BACKBONE">BACKBONE</option>
-        </select>
-      </div>
-    </div>
-    <table id="mainTable">
-      <thead>
-        <tr>
-          <th onclick="sortBy('rank')">#</th>
-          <th onclick="sortBy('cidade')">Município ↕</th>
-          <th onclick="sortBy('estado')">Estado ↕</th>
-          <th onclick="sortBy('tipo')">Tipo</th>
-          <th onclick="sortBy('total')" style="text-align:right">Postes ↕</th>
-          <th>Participação</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-    <div class="pagination">
-      <span id="pageInfo"></span>
-      <div class="page-btns">
-        <button id="prevBtn" onclick="changePage(-1)">‹ Anterior</button>
-        <span id="pageNums"></span>
-        <button id="nextBtn" onclick="changePage(1)">Próximo ›</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="data-ref">Fonte: Google Sheets — Poste totais por cidade - PROXXIMA 06.05.26 V2 · gid=1861973021 · Referência: 30/04/2026</div>
-</div><!-- end tab-postes -->
-
-<!-- TAB COMPARAÇÃO -->
-<div class="tab-panel" id="tab-comp">
-
-  <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
-    <div class="kpi">
-      <div class="label">Total Postes em Uso</div>
-      <div class="value">219.357</div>
-      <div class="sub">Abr/2026</div>
-    </div>
-    <div class="kpi">
-      <div class="label">Total Postes Pagos</div>
-      <div class="value" style="color:#10b981">115.757</div>
-      <div class="sub">Contratos ativos · Abr/2026</div>
-    </div>
-    <div class="kpi">
-      <div class="label">% Regularizado</div>
-      <div class="value" style="color:#f59e0b">52,8%</div>
-      <div class="sub">Pagos / Usados</div>
-    </div>
-    <div class="kpi">
-      <div class="label">Postes sem Pagamento</div>
-      <div class="value" style="color:#ef4444">103.600</div>
-      <div class="sub">Sem contrato ativo registrado</div>
-    </div>
-  </div>
-
-  <!-- Charts comparison -->
-  <div class="charts-row" style="grid-template-columns:1fr 1fr; margin-bottom:24px;">
-    <div class="card">
-      <h2>Usado vs Pago por Estado (Abr/2026)</h2>
-      <div style="height:300px; position:relative;">
-        <canvas id="compEstadoChart"></canvas>
-      </div>
-    </div>
-    <div class="card">
-      <h2>% Regularizado por Estado</h2>
-      <div style="height:300px; position:relative;">
-        <canvas id="pctEstadoChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Comparison Table -->
-  <div class="table-section">
-    <div class="table-header">
-      <h2>Comparativo por Município</h2>
-      <div class="filters">
-        <input type="text" id="compSearch" placeholder="🔍 Buscar município...">
-        <select id="compEstadoFilter">
-          <option value="">Todos os estados</option>
-          <option value="PB">Paraíba (PB)</option>
-          <option value="RN">Rio Grande do Norte (RN)</option>
-          <option value="BA">Bahia (BA)</option>
-          <option value="PE">Pernambuco (PE)</option>
-          <option value="CE">Ceará (CE)</option>
-        </select>
-        <select id="compStatusFilter">
-          <option value="">Todos</option>
-          <option value="ok">≥ 90% regularizado</option>
-          <option value="parcial">30–89% regularizado</option>
-          <option value="critico">< 30% regularizado</option>
-          <option value="zero">Sem pagamento</option>
-        </select>
-      </div>
-    </div>
-    <table id="compTable">
-      <thead>
-        <tr>
-          <th onclick="compSortBy('cidade')">Município ↕</th>
-          <th onclick="compSortBy('estado')">Estado ↕</th>
-          <th onclick="compSortBy('usados')" style="text-align:right">Usados ↕</th>
-          <th onclick="compSortBy('pagos')" style="text-align:right">Pagos ↕</th>
-          <th onclick="compSortBy('diff')" style="text-align:right">Diferença ↕</th>
-          <th onclick="compSortBy('pct')" style="text-align:right">% Pago ↕</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="compTableBody"></tbody>
-    </table>
-    <div class="pagination">
-      <span id="compPageInfo"></span>
-      <div class="page-btns">
-        <button id="compPrevBtn" onclick="compChangePage(-1)">‹ Anterior</button>
-        <span id="compPageNums"></span>
-        <button id="compNextBtn" onclick="compChangePage(1)">Próximo ›</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="data-ref">Fontes: Poste totais por cidade (usados) · Postes Pagos (contratos) · Referência: Abr/2026</div>
-</div><!-- end tab-comp -->
-
-</div><!-- end main -->
+</div>
 
 <script>
-const GRAND_TOTAL = 219357;
-
-const RAW_DATA = [
-  {"cidade":"CAMPINA GRANDE - PB","estado":"PB","tipo":"FTTH","total":22443},
-  {"cidade":"GARANHUNS - PE","estado":"PE","tipo":"FTTH","total":8010},
-  {"cidade":"GUARABIRA - PB","estado":"PB","tipo":"FTTH","total":4901},
-  {"cidade":"CAICO - RN","estado":"RN","tipo":"FTTH","total":4766},
-  {"cidade":"EXTREMOZ - RN","estado":"RN","tipo":"FTTH","total":4421},
-  {"cidade":"SENHOR DO BONFIM","estado":"BA","tipo":"FTTH","total":3841},
-  {"cidade":"IRECÊ","estado":"BA","tipo":"FTTH","total":3382},
-  {"cidade":"CAJAZEIRAS - PB","estado":"PB","tipo":"BACKBONE","total":3348},
-  {"cidade":"JACOBINA","estado":"BA","tipo":"FTTH","total":3233},
-  {"cidade":"NATAL - RN","estado":"RN","tipo":"FTTH","total":3185},
-  {"cidade":"SOUSA - PB","estado":"PB","tipo":"FTTH","total":2976},
-  {"cidade":"TOUROS","estado":"RN","tipo":"FTTH","total":2955},
-  {"cidade":"BELO JARDIM - PE","estado":"PE","tipo":"BACKBONE","total":2743},
-  {"cidade":"CONDE","estado":"PB","tipo":"FTTH","total":2694},
-  {"cidade":"NISIA FLORESTA","estado":"RN","tipo":"FTTH","total":2599},
-  {"cidade":"PARELHAS","estado":"RN","tipo":"FTTH","total":2593},
-  {"cidade":"CAPIM GROSSO","estado":"BA","tipo":"FTTH","total":2544},
-  {"cidade":"SANTA CRUZ - RN","estado":"RN","tipo":"FTTH","total":2527},
-  {"cidade":"NOVA CRUZ - RN","estado":"RN","tipo":"FTTH","total":2489},
-  {"cidade":"JOÃO PESSOA","estado":"PE","tipo":"FTTH","total":2488},
-  {"cidade":"LAJEDO - PE","estado":"PE","tipo":"FTTH","total":2338},
-  {"cidade":"CEARÁ-MIRIM - RN","estado":"RN","tipo":"FTTH","total":2244},
-  {"cidade":"SÃO JOSÉ DE MIPIBU - RN","estado":"RN","tipo":"FTTH","total":2232},
-  {"cidade":"MONTEIRO - PB","estado":"PB","tipo":"FTTH","total":2178},
-  {"cidade":"AFOGADOS DA INGAZEIRA - PE","estado":"PE","tipo":"FTTH","total":1990},
-  {"cidade":"CANGUARETAMA - RN","estado":"RN","tipo":"FTTH","total":1990},
-  {"cidade":"QUEIMADAS -PB","estado":"PB","tipo":"FTTH","total":1926},
-  {"cidade":"GOIANINHA - RN","estado":"RN","tipo":"FTTH","total":1897},
-  {"cidade":"PATOS - PB","estado":"PB","tipo":"FTTH","total":1858},
-  {"cidade":"AREIA BRANCA - RN","estado":"RN","tipo":"FTTH","total":1855},
-  {"cidade":"CURRAIS NOVOS","estado":"RN","tipo":"FTTH","total":1837},
-  {"cidade":"ITABAIANA - PB","estado":"PB","tipo":"FTTH","total":1807},
-  {"cidade":"FEIRA DE SANTANA","estado":"BA","tipo":"BACKBONE","total":1794},
-  {"cidade":"PARNAMIRIM - RN","estado":"RN","tipo":"FTTH","total":1766},
-  {"cidade":"SANTA RITA - PB","estado":"PB","tipo":"FTTH","total":1740},
-  {"cidade":"MACAÍBA - RN","estado":"RN","tipo":"FTTH","total":1726},
-  {"cidade":"LAGES","estado":"RN","tipo":"FTTH","total":1710},
-  {"cidade":"MOSSORÓ - RN","estado":"RN","tipo":"FTTH","total":1700},
-  {"cidade":"ARARUNA - PB","estado":"PB","tipo":"FTTH","total":1682},
-  {"cidade":"APODI - RN","estado":"RN","tipo":"FTTH","total":1656},
-  {"cidade":"SAO BENTO - PB","estado":"PB","tipo":"FTTH","total":1618},
-  {"cidade":"INGÁ - PB","estado":"PB","tipo":"FTTH","total":1581},
-  {"cidade":"CARUARU - PE","estado":"PE","tipo":"BACKBONE","total":1559},
-  {"cidade":"PAU DOS FERROS - RN","estado":"RN","tipo":"FTTH","total":1553},
-  {"cidade":"PEDRAS DE FOGO - PB","estado":"PB","tipo":"FTTH","total":1539},
-  {"cidade":"POMBAL - PB","estado":"PB","tipo":"FTTH","total":1516},
-  {"cidade":"CAMPINA GRANDE - PB (BACKBONE)","estado":"PB","tipo":"BACKBONE","total":1489},
-  {"cidade":"RIACHO DE SANTANA","estado":"BA","tipo":"FTTH","total":1472},
-  {"cidade":"SÃO MIGUEL DO GOSTOSO - RN","estado":"RN","tipo":"FTTH","total":1453},
-  {"cidade":"LAGOA NOVA - RN","estado":"RN","tipo":"FTTH","total":1430},
-  {"cidade":"MULUNGU DO MORRO","estado":"BA","tipo":"FTTH","total":1421},
-  {"cidade":"LAGOA SALGADA - RN","estado":"RN","tipo":"FTTH","total":1400},
-  {"cidade":"ITAPORANGA - PB","estado":"PB","tipo":"FTTH","total":1387},
-  {"cidade":"PIANCÓ - PB","estado":"PB","tipo":"FTTH","total":1371},
-  {"cidade":"CARAÚBAS - RN","estado":"RN","tipo":"FTTH","total":1344},
-  {"cidade":"MAMANGUAPE - PB","estado":"PB","tipo":"FTTH","total":1332},
-  {"cidade":"CURRAIS NOVOS - RN","estado":"RN","tipo":"FTTH","total":1310},
-  {"cidade":"PEDRA BRANCA - CE","estado":"CE","tipo":"FTTH","total":644},
-  {"cidade":"IELMO MARINHO - RN","estado":"RN","tipo":"FTTH","total":612},
-  {"cidade":"NOVA FLORESTA - PB","estado":"PB","tipo":"FTTH","total":590},
-  {"cidade":"ALAGOA NOVA - PB","estado":"PB","tipo":"FTTH","total":576},
-  {"cidade":"ACARI - RN","estado":"RN","tipo":"FTTH","total":565},
-  {"cidade":"SERRINHA - BA","estado":"BA","tipo":"FTTH","total":554},
-  {"cidade":"LAGOA DE PEDRAS - RN","estado":"RN","tipo":"FTTH","total":543},
-  {"cidade":"ESPERANÇA - PB","estado":"PB","tipo":"FTTH","total":538},
-  {"cidade":"MUNDO NOVO - BA","estado":"BA","tipo":"FTTH","total":536},
-  {"cidade":"TAPEROÁ - PB","estado":"PB","tipo":"FTTH","total":512},
-  {"cidade":"POÇO VERDE - SE","estado":"BA","tipo":"FTTH","total":506},
-  {"cidade":"SÃO PAULO DO POTENGI - RN","estado":"RN","tipo":"FTTH","total":498},
-  {"cidade":"BREJO DA MADRE DE DEUS - PE","estado":"PE","tipo":"FTTH","total":485},
-  {"cidade":"VERTENTES - PE","estado":"PE","tipo":"FTTH","total":481},
-  {"cidade":"SÃO GONÇALO DO AMARANTE - RN","estado":"RN","tipo":"FTTH","total":476},
-  {"cidade":"CAIÇARA DO NORTE - RN","estado":"RN","tipo":"FTTH","total":472},
-  {"cidade":"BAÍA FORMOSA - RN","estado":"RN","tipo":"FTTH","total":464},
-  {"cidade":"COREMAS - PB","estado":"PB","tipo":"FTTH","total":459},
-  {"cidade":"PUXINANÃ - PB","estado":"PB","tipo":"FTTH","total":448},
-  {"cidade":"DESTERRO - PB","estado":"PB","tipo":"FTTH","total":437},
-  {"cidade":"QUEIMADAS - PB","estado":"PB","tipo":"FTTH","total":430},
-  {"cidade":"UMARIZAL - RN","estado":"RN","tipo":"FTTH","total":428},
-  {"cidade":"UIRAÚNA - PB","estado":"PB","tipo":"FTTH","total":423},
-  {"cidade":"PICUÍ - PB","estado":"PB","tipo":"FTTH","total":416},
-  {"cidade":"CARAÚBAS - PB","estado":"PB","tipo":"FTTH","total":410},
-  {"cidade":"LAGOA NOVA - PB","estado":"PB","tipo":"FTTH","total":405},
-  {"cidade":"SÃO MIGUEL - RN","estado":"RN","tipo":"FTTH","total":397},
-  {"cidade":"NATAL - RN (BACKBONE)","estado":"RN","tipo":"BACKBONE","total":390},
-  {"cidade":"PEDRA GRANDE - RN","estado":"RN","tipo":"FTTH","total":382},
-  {"cidade":"BREJO DO CRUZ - PB","estado":"PB","tipo":"FTTH","total":378},
-  {"cidade":"ALHANDRA - PB","estado":"PB","tipo":"FTTH","total":372},
-  {"cidade":"LUCENA - PB","estado":"PB","tipo":"FTTH","total":369},
-  {"cidade":"CABACEIRAS - PB","estado":"PB","tipo":"FTTH","total":362},
-  {"cidade":"CUITÉ - PB","estado":"PB","tipo":"FTTH","total":356},
-  {"cidade":"ITAÚ - RN","estado":"RN","tipo":"FTTH","total":349},
-  {"cidade":"IPANGUAÇU - RN","estado":"RN","tipo":"FTTH","total":342},
-  {"cidade":"PEDRAS GRANDES - RN","estado":"RN","tipo":"FTTH","total":339},
-  {"cidade":"SANTA LUZIA - PB","estado":"PB","tipo":"FTTH","total":334},
-  {"cidade":"CURRAL DE CIMA - PB","estado":"PB","tipo":"FTTH","total":328},
-  {"cidade":"LOGRADOURO - PB","estado":"PB","tipo":"FTTH","total":320},
-  {"cidade":"PEDRO VELHO - RN","estado":"RN","tipo":"FTTH","total":315},
-  {"cidade":"SÃO FRANCISCO - PB","estado":"PB","tipo":"FTTH","total":310},
-  {"cidade":"OLHO D'ÁGUA - PB","estado":"PB","tipo":"FTTH","total":305}
-];
-
-// Estado summary
-const BY_ESTADO = [
-  {estado:"PB", total:80765},
-  {estado:"RN", total:78228},
-  {estado:"BA", total:31524},
-  {estado:"PE", total:25721},
-  {estado:"CE", total:644}
-];
-
-const ESTADO_COLORS = {PB:'#2563eb', RN:'#10b981', BA:'#f59e0b', PE:'#ef4444', CE:'#8b5cf6'};
-
-// Sorting
-let sortKey = 'total', sortDir = -1;
-let currentPage = 1;
+// ===================== CONFIG =====================
+const SHEET_USADOS_ID = '161Wvv28F2mCviN2CQsZEpsJAkQJBiqBO';
+const SHEET_USADOS_GID = '1861973021';
+const SHEET_PAGOS_ID = '1QdEK6J507qlDwIRODP--3X8wd6YdK8CQ';
+const SHEET_PAGOS_GID = '1607696209';
+const ESTADO_COLORS = {PB:'#2563eb',RN:'#10b981',BA:'#f59e0b',PE:'#ef4444',CE:'#8b5cf6'};
 const PAGE_SIZE = 25;
 
-// Populate cidade dropdown
-const cidadeSel = document.getElementById('cidadeFilter');
-RAW_DATA.forEach(d => {
-  const opt = document.createElement('option');
-  opt.value = d.cidade;
-  opt.textContent = d.cidade + ' (' + d.estado + ')';
-  cidadeSel.appendChild(opt);
-});
+// ===================== STATE =====================
+let DATA_USADOS = [], DATA_COMP = [], DATA_ESTADO_USADOS = [], DATA_ESTADO_COMP = [];
+let MESES_USADOS = [], SEL_COL = -1, SEL_MES_LABEL = '';
+let sortKey = 'total', sortDir = -1, curPage = 1;
+let compSortKey = 'usados', compSortDir = -1, compPage = 1;
+let barChartInst = null, donutChartInst = null, compEstInst = null, pctEstInst = null;
 
-// KPI
-document.getElementById('kpi-cidades').textContent = RAW_DATA.length + '+';
-document.getElementById('kpi-total').textContent = GRAND_TOTAL.toLocaleString('pt-BR');
+// ===================== CSV PARSER =====================
+function parseCSV(text) {
+  return text.split('\n').filter(l => l.trim()).map(line => {
+    const cols = []; let inQ = false, cur = '';
+    for (let c of line) {
+      if (c === '"') inQ = !inQ;
+      else if (c === ',' && !inQ) { cols.push(cur); cur = ''; }
+      else cur += c;
+    }
+    cols.push(cur);
+    return cols;
+  });
+}
 
-// Bar chart — top 20
-const top20 = RAW_DATA.slice(0, 20);
-new Chart(document.getElementById('barChart'), {
-  type: 'bar',
-  data: {
-    labels: top20.map(d => d.cidade.replace(' - ' + d.estado, '').trim()),
-    datasets: [{
-      label: 'Postes',
-      data: top20.map(d => d.total),
-      backgroundColor: top20.map(d => (ESTADO_COLORS[d.estado] || '#60a5fa') + 'cc'),
-      borderColor: top20.map(d => ESTADO_COLORS[d.estado] || '#60a5fa'),
-      borderWidth: 1,
-      borderRadius: 4,
-    }]
-  },
-  options: {
-    indexAxis: 'y',
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {display: false},
-      tooltip: {
-        callbacks: {
-          label: ctx => ' ' + ctx.raw.toLocaleString('pt-BR') + ' postes'
-        }
-      }
+function normCity(s) {
+  return s.replace(/[-–]\s*[A-Z]{2}\s*$/, '').trim().toUpperCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+// ===================== FETCH =====================
+async function fetchCSV(sheetId, gid) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}`;
+  const r = await fetch(url, {credentials:'include'});
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return await r.text();
+}
+
+// ===================== PARSE USADOS =====================
+function parseUsados(text) {
+  const rows = parseCSV(text);
+  const headers = rows[0];
+
+  // Find all date columns (format: d/m/yyyy)
+  const dateCols = [];
+  headers.forEach((h, i) => {
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(h.trim()) || /^\d{2}\/\d{1,2}\/\d{4}$/.test(h.trim())) {
+      dateCols.push({ idx: i, label: h.trim() });
+    }
+  });
+
+  return { rows, headers, dateCols };
+}
+
+function buildUsadosForCol(rows, colIdx) {
+  const cityMap = {};
+  let grandTotal = 0;
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const cidade = row[2] ? row[2].trim() : '';
+    const estado = row[4] ? row[4].trim() : '';
+    const tipo   = row[1] ? row[1].trim() : '';
+    const val    = parseInt(row[colIdx]) || 0;
+    if (!cidade || cidade === 'CIDADE') continue;
+    if (cidade === 'TOTAL EM USO') { grandTotal = val; continue; }
+    if (!cityMap[cidade]) cityMap[cidade] = { cidade, estado, tipo, total: 0 };
+    cityMap[cidade].total += val;
+  }
+  const data = Object.values(cityMap).filter(d => d.total > 0).sort((a,b) => b.total - a.total);
+  if (!grandTotal) grandTotal = data.reduce((s,d) => s+d.total, 0);
+
+  const byEstado = {};
+  data.forEach(d => {
+    if (!byEstado[d.estado]) byEstado[d.estado] = 0;
+    byEstado[d.estado] += d.total;
+  });
+
+  return { data, grandTotal, byEstado: Object.entries(byEstado).map(([e,t]) => ({estado:e,total:t})).sort((a,b)=>b.total-a.total) };
+}
+
+// ===================== PARSE PAGOS =====================
+function parsePagos(text, mesLabel) {
+  const rows = parseCSV(text);
+  const monthRow = rows[0];
+
+  // Find column index of selected month in pagos sheet
+  const monthCols = {};
+  monthRow.forEach((v, i) => { if (v.trim()) monthCols[v.trim().toLowerCase()] = i; });
+
+  // Build month key: "abr.-26" style — match against mesLabel which is like "30/4/2026"
+  // Parse mesLabel date
+  const [dd, mm, yyyy] = SEL_MES_LABEL.split('/').map(Number);
+  const monthNames = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const mesKey1 = `${monthNames[mm-1]}.-${String(yyyy).slice(2)}`;  // "abr.-26"
+  const mesKey2 = `${monthNames[mm-1]}/${String(yyyy).slice(2)}`;
+
+  let abrStart = -1;
+  for (const [k, v] of Object.entries(monthCols)) {
+    if (k.startsWith(monthNames[mm-1]) && k.includes(String(yyyy).slice(2))) {
+      abrStart = v; break;
+    }
+  }
+  if (abrStart === -1) {
+    // fallback: use last available month
+    const vals = Object.values(monthCols);
+    abrStart = vals[vals.length - 1];
+  }
+
+  // ABR_QTY = abrStart, structure: qty, price, total, NF
+  const cityMap = {};
+  for (let i = 2; i < rows.length; i++) {
+    const row = rows[i];
+    const cidade = row[4] ? row[4].trim() : '';
+    const estado = row[5] ? row[5].trim() : '';
+    if (!cidade) continue;
+    const qty = parseInt(row[abrStart]) || 0;
+    if (!cityMap[cidade]) cityMap[cidade] = { cidade, estado, qtdPago: 0 };
+    cityMap[cidade].qtdPago += qty;
+  }
+
+  return Object.values(cityMap);
+}
+
+function buildComparison(usadosData, pagosData) {
+  const pagosMap = {};
+  pagosData.forEach(p => {
+    const key = normCity(p.cidade);
+    if (!pagosMap[key]) pagosMap[key] = 0;
+    pagosMap[key] += p.qtdPago;
+  });
+
+  const comp = usadosData.map(u => {
+    const norm = normCity(u.cidade);
+    const pagos = pagosMap[norm] || 0;
+    const pct = u.total > 0 ? parseFloat((pagos/u.total*100).toFixed(1)) : 0;
+    return { cidade: u.cidade, estado: u.estado, usados: u.total, pagos, diff: pagos - u.total, pct };
+  });
+
+  const byEstado = {};
+  comp.forEach(r => {
+    if (!byEstado[r.estado]) byEstado[r.estado] = {estado:r.estado, usados:0, pagos:0};
+    byEstado[r.estado].usados += r.usados;
+    byEstado[r.estado].pagos  += r.pagos;
+  });
+
+  return { comp, byEstado: Object.values(byEstado).sort((a,b)=>b.usados-a.usados) };
+}
+
+// ===================== MAIN LOAD =====================
+async function loadAll() {
+  setLoading(true);
+  showError('');
+  try {
+    // Fetch both sheets
+    const [usadosTxt, pagosTxt] = await Promise.all([
+      fetchCSV(SHEET_USADOS_ID, SHEET_USADOS_GID),
+      fetchCSV(SHEET_PAGOS_ID,  SHEET_PAGOS_GID)
+    ]);
+
+    // Parse usados months
+    const usadosParsed = parseUsados(usadosTxt);
+    MESES_USADOS = usadosParsed.dateCols;
+    window._usadosRows = usadosParsed.rows;
+    window._pagosTxt = pagosTxt;
+
+    // Populate month selector
+    const sel = document.getElementById('mesSelect');
+    sel.innerHTML = '';
+    MESES_USADOS.forEach((m, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = formatMes(m.label);
+      if (i === MESES_USADOS.length - 1) opt.selected = true;
+      sel.appendChild(opt);
+    });
+
+    applyMes();
+    document.getElementById('lastUpdate').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+  } catch(e) {
+    showError('Erro ao carregar dados. Verifique se você está logado no Google e tem acesso às planilhas. (' + e.message + ')');
+  } finally {
+    setLoading(false);
+  }
+}
+
+function onMesChange() { applyMes(); }
+
+function applyMes() {
+  const idx = parseInt(document.getElementById('mesSelect').value);
+  const mes = MESES_USADOS[idx];
+  if (!mes) return;
+  SEL_COL = mes.idx;
+  SEL_MES_LABEL = mes.label;
+
+  const { data, grandTotal, byEstado } = buildUsadosForCol(window._usadosRows, SEL_COL);
+  DATA_USADOS = data;
+  DATA_ESTADO_USADOS = byEstado;
+
+  const pagosData = parsePagos(window._pagosTxt, SEL_MES_LABEL);
+  const { comp, byEstado: byEstComp } = buildComparison(data, pagosData);
+  DATA_COMP = comp;
+  DATA_ESTADO_COMP = byEstComp;
+
+  updateTab1(data, grandTotal, byEstado, mes.label);
+  updateTab2(comp, byEstComp, grandTotal);
+}
+
+function formatMes(label) {
+  // "30/4/2026" → "Abr/2026"
+  try {
+    const [d, m, y] = label.split('/').map(Number);
+    const names = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    return `${names[m-1]}/${y}`;
+  } catch { return label; }
+}
+
+// ===================== TAB 1 RENDER =====================
+function updateTab1(data, grandTotal, byEstado, mesLabel) {
+  const mesFmt = formatMes(mesLabel);
+  document.getElementById('k1').textContent = grandTotal.toLocaleString('pt-BR');
+  document.getElementById('k1sub').textContent = 'Referência: ' + mesFmt;
+  document.getElementById('k2').textContent = data.length + '+';
+  const estados = [...new Set(data.map(d=>d.estado))];
+  document.getElementById('k3').textContent = estados.length;
+  document.getElementById('k3sub').textContent = estados.join(' · ');
+  document.getElementById('k4').textContent = data[0] ? data[0].cidade.replace(/\s*-\s*[A-Z]{2}$/, '') : '—';
+  document.getElementById('k4sub').textContent = data[0] ? data[0].total.toLocaleString('pt-BR') + ' postes · ' + data[0].estado : '';
+  document.getElementById('ref1').textContent = 'Fonte: Planilha Postes Totais · Referência: ' + mesFmt;
+
+  // Populate filters
+  const cidSel = document.getElementById('cidadeFilter');
+  cidSel.innerHTML = '<option value="">Todos os municípios</option>';
+  data.forEach(d => { const o=document.createElement('option'); o.value=d.cidade; o.textContent=d.cidade+' ('+d.estado+')'; cidSel.appendChild(o); });
+  const estSel = document.getElementById('estadoFilter');
+  estSel.innerHTML = '<option value="">Todos os estados</option>';
+  estados.forEach(e => { const o=document.createElement('option'); o.value=e; o.textContent=e; estSel.appendChild(o); });
+
+  renderBarChart(data);
+  renderDonut(byEstado, grandTotal);
+  curPage = 1; renderTable();
+}
+
+function renderBarChart(data) {
+  const top20 = data.slice(0, 20);
+  if (barChartInst) barChartInst.destroy();
+  barChartInst = new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+      labels: top20.map(d => d.cidade.replace(/\s*-\s*[A-Z]{2}$/, '')),
+      datasets: [{ label:'Postes', data: top20.map(d=>d.total),
+        backgroundColor: top20.map(d=>(ESTADO_COLORS[d.estado]||'#60a5fa')+'cc'),
+        borderColor: top20.map(d=>ESTADO_COLORS[d.estado]||'#60a5fa'),
+        borderWidth:1, borderRadius:4 }]
     },
-    scales: {
-      x: {
-        grid: {color: '#1e3a5f'},
-        ticks: {color: '#64748b', font:{size:10}, callback: v => v.toLocaleString('pt-BR')},
-      },
-      y: {
-        grid: {color: 'transparent'},
-        ticks: {color: '#cbd5e1', font:{size:10}},
-      }
-    }
-  }
-});
+    options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>' '+c.raw.toLocaleString('pt-BR')+' postes'}} },
+      scales:{ x:{grid:{color:'#1e3a5f'}, ticks:{color:'#64748b',font:{size:10},callback:v=>v.toLocaleString('pt-BR')}},
+               y:{grid:{color:'transparent'}, ticks:{color:'#cbd5e1',font:{size:10}}} } }
+  });
+}
 
-// Donut chart
-new Chart(document.getElementById('donutChart'), {
-  type: 'doughnut',
-  data: {
-    labels: BY_ESTADO.map(d => d.estado),
-    datasets: [{
-      data: BY_ESTADO.map(d => d.total),
-      backgroundColor: BY_ESTADO.map(d => ESTADO_COLORS[d.estado] + 'cc'),
-      borderColor: BY_ESTADO.map(d => ESTADO_COLORS[d.estado]),
-      borderWidth: 2,
-      hoverOffset: 8
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '65%',
-    plugins: {
-      legend: {display: false},
-      tooltip: {
-        callbacks: {
-          label: ctx => ' ' + ctx.label + ': ' + ctx.raw.toLocaleString('pt-BR') + ' postes'
-        }
-      }
-    }
-  }
-});
-
-// Estado legend
-const legendEl = document.getElementById('estadoLegend');
-BY_ESTADO.forEach(d => {
-  const pct = ((d.total / GRAND_TOTAL) * 100).toFixed(1);
-  legendEl.innerHTML += `<div class="estado-item">
-    <span class="estado-name"><span class="dot" style="background:${ESTADO_COLORS[d.estado]}"></span>${d.estado}</span>
-    <span class="estado-val">${d.total.toLocaleString('pt-BR')} <span style="color:#475569;font-weight:400">(${pct}%)</span></span>
-  </div>`;
-});
+function renderDonut(byEstado, grandTotal) {
+  if (donutChartInst) donutChartInst.destroy();
+  donutChartInst = new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: byEstado.map(d=>d.estado),
+      datasets:[{ data:byEstado.map(d=>d.total),
+        backgroundColor:byEstado.map(d=>(ESTADO_COLORS[d.estado]||'#60a5fa')+'cc'),
+        borderColor:byEstado.map(d=>ESTADO_COLORS[d.estado]||'#60a5fa'),
+        borderWidth:2, hoverOffset:6 }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'65%',
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>' '+c.label+': '+c.raw.toLocaleString('pt-BR')+' postes'}}} }
+  });
+  const leg = document.getElementById('estadoLegend');
+  leg.innerHTML = byEstado.map(d => {
+    const pct = ((d.total/grandTotal)*100).toFixed(1);
+    return `<div class="estado-item"><span class="estado-name"><span class="dot" style="background:${ESTADO_COLORS[d.estado]||'#60a5fa'}"></span>${d.estado}</span><span class="estado-val">${d.total.toLocaleString('pt-BR')} <span style="color:#475569;font-weight:400">(${pct}%)</span></span></div>`;
+  }).join('');
+}
 
 // Table
-const maxTotal = RAW_DATA[0].total;
-
 function getFiltered() {
   const q = document.getElementById('searchInput').value.toLowerCase();
-  const cidadeVal = document.getElementById('cidadeFilter').value;
-  const est = document.getElementById('estadoFilter').value;
-  const tipo = document.getElementById('tipoFilter').value;
-  return RAW_DATA
-    .map((d, i) => ({...d, rank: i + 1}))
-    .filter(d => {
-      if (q && !d.cidade.toLowerCase().includes(q)) return false;
-      if (cidadeVal && d.cidade !== cidadeVal) return false;
-      if (est && d.estado !== est) return false;
-      if (tipo && d.tipo !== tipo) return false;
-      return true;
-    });
+  const cv = document.getElementById('cidadeFilter').value;
+  const ev = document.getElementById('estadoFilter').value;
+  const tv = document.getElementById('tipoFilter').value;
+  return DATA_USADOS.map((d,i)=>({...d,rank:i+1})).filter(d => {
+    if (q && !d.cidade.toLowerCase().includes(q)) return false;
+    if (cv && d.cidade !== cv) return false;
+    if (ev && d.estado !== ev) return false;
+    if (tv && d.tipo !== tv) return false;
+    return true;
+  });
 }
 
 function renderTable() {
   const filtered = getFiltered();
   const total = filtered.length;
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  currentPage = Math.min(currentPage, pages);
-  const slice = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-  const tbody = document.getElementById('tableBody');
-  tbody.innerHTML = slice.map(d => {
-    const pct = ((d.total / GRAND_TOTAL) * 100).toFixed(2);
-    const barW = Math.round((d.total / maxTotal) * 100);
-    const tipoCls = d.tipo === 'FTTH' ? 'tipo-FTTH' : d.tipo === 'BACKBONE' ? 'tipo-BACKBONE' : 'tipo-other';
-    return `<tr>
-      <td class="rank">${d.rank}</td>
-      <td class="cidade">${d.cidade}</td>
-      <td>${d.estado}</td>
-      <td><span class="tipo-badge ${tipoCls}">${d.tipo || '-'}</span></td>
-      <td class="num">${d.total.toLocaleString('pt-BR')}</td>
-      <td style="white-space:nowrap;">
-        <span style="color:#64748b;font-size:0.75rem">${pct}%</span>
-        <span class="bar-wrap"><span class="bar-fill" style="width:${barW}%"></span></span>
-      </td>
-    </tr>`;
+  const pages = Math.max(1, Math.ceil(total/PAGE_SIZE));
+  curPage = Math.min(curPage, pages);
+  const slice = filtered.slice((curPage-1)*PAGE_SIZE, curPage*PAGE_SIZE);
+  const maxT = DATA_USADOS[0]?.total || 1;
+  const grandTotal = DATA_USADOS.reduce((s,d)=>s+d.total,0);
+  document.getElementById('tableBody').innerHTML = slice.map(d => {
+    const pct = ((d.total/grandTotal)*100).toFixed(2);
+    const bw = Math.round(d.total/maxT*100);
+    const tc = d.tipo==='FTTH'?'tipo-FTTH':d.tipo==='BACKBONE'?'tipo-BACKBONE':'';
+    return `<tr><td class="rank">${d.rank}</td><td class="cidade">${d.cidade}</td><td>${d.estado}</td><td><span class="tipo-badge ${tc}">${d.tipo||'-'}</span></td><td class="num">${d.total.toLocaleString('pt-BR')}</td><td style="white-space:nowrap"><span style="color:#64748b;font-size:.75rem">${pct}%</span><span class="bar-wrap"><span class="bar-fill" style="width:${bw}%"></span></span></td></tr>`;
   }).join('');
-
-  document.getElementById('pageInfo').textContent = `${total} município${total !== 1 ? 's' : ''} · Página ${currentPage} de ${pages}`;
-  document.getElementById('prevBtn').disabled = currentPage <= 1;
-  document.getElementById('nextBtn').disabled = currentPage >= pages;
-
-  // Page numbers
-  let nums = '';
-  for (let p = Math.max(1, currentPage - 2); p <= Math.min(pages, currentPage + 2); p++) {
-    nums += `<button onclick="goPage(${p})" class="${p === currentPage ? 'active' : ''}">${p}</button>`;
-  }
+  document.getElementById('pageInfo').textContent = `${total} municípios · Pg ${curPage}/${pages}`;
+  document.getElementById('prevBtn').disabled = curPage<=1;
+  document.getElementById('nextBtn').disabled = curPage>=pages;
+  let nums='';
+  for(let p=Math.max(1,curPage-2);p<=Math.min(pages,curPage+2);p++) nums+=`<button onclick="goPage(${p})" class="${p===curPage?'active':''}">${p}</button>`;
   document.getElementById('pageNums').innerHTML = nums;
 }
 
-function changePage(dir) { currentPage += dir; renderTable(); }
-function goPage(p) { currentPage = p; renderTable(); }
-function sortBy(key) {
-  if (sortKey === key) sortDir *= -1;
-  else { sortKey = key; sortDir = -1; }
-  RAW_DATA.sort((a, b) => {
-    if (key === 'total') return (a.total - b.total) * sortDir;
-    return (a[key] || '').localeCompare(b[key] || '') * sortDir;
-  });
-  currentPage = 1;
-  renderTable();
+function sortBy(k) { if(sortKey===k) sortDir*=-1; else{sortKey=k;sortDir=-1;} DATA_USADOS.sort((a,b)=>typeof a[k]==='number'?(a[k]-b[k])*sortDir:(a[k]||'').localeCompare(b[k]||'')*sortDir); curPage=1; renderTable(); }
+function changePage(d) { curPage+=d; renderTable(); }
+function goPage(p) { curPage=p; renderTable(); }
+
+document.getElementById('searchInput').addEventListener('input', ()=>{document.getElementById('cidadeFilter').value='';curPage=1;renderTable();});
+document.getElementById('cidadeFilter').addEventListener('change', ()=>{document.getElementById('searchInput').value='';curPage=1;renderTable();});
+document.getElementById('estadoFilter').addEventListener('change', ()=>{curPage=1;renderTable();});
+document.getElementById('tipoFilter').addEventListener('change', ()=>{curPage=1;renderTable();});
+
+// ===================== TAB 2 RENDER =====================
+function updateTab2(comp, byEstado, grandTotal) {
+  const totalUsados = comp.reduce((s,d)=>s+d.usados,0);
+  const totalPagos  = comp.reduce((s,d)=>s+d.pagos,0);
+  const pct = totalUsados > 0 ? (totalPagos/totalUsados*100).toFixed(1) : 0;
+  const sem = totalUsados - totalPagos;
+
+  document.getElementById('ck1').textContent = totalUsados.toLocaleString('pt-BR');
+  document.getElementById('ck1sub').textContent = 'Referência: ' + formatMes(SEL_MES_LABEL);
+  document.getElementById('ck2').textContent = totalPagos.toLocaleString('pt-BR');
+  document.getElementById('ck3').textContent = pct + '%';
+  document.getElementById('ck4').textContent = Math.max(0,sem).toLocaleString('pt-BR');
+  document.getElementById('ref2').textContent = 'Fontes: Planilha Postes Totais · Planilha Postes Pagos · Referência: ' + formatMes(SEL_MES_LABEL);
+
+  const estSel2 = document.getElementById('compEstadoFilter');
+  estSel2.innerHTML = '<option value="">Todos os estados</option>';
+  byEstado.forEach(e => { const o=document.createElement('option'); o.value=e.estado; o.textContent=e.estado; estSel2.appendChild(o); });
+
+  renderCompCharts(byEstado);
+  compPage=1; renderCompTable();
 }
 
-document.getElementById('searchInput').addEventListener('input', () => {
-  document.getElementById('cidadeFilter').value = '';
-  currentPage = 1; renderTable();
-});
-document.getElementById('cidadeFilter').addEventListener('change', () => {
-  document.getElementById('searchInput').value = '';
-  currentPage = 1; renderTable();
-});
-document.getElementById('estadoFilter').addEventListener('change', () => { currentPage = 1; renderTable(); });
-document.getElementById('tipoFilter').addEventListener('change', () => { currentPage = 1; renderTable(); });
-
-renderTable();
-
-// ===================== TAB SWITCH =====================
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    b.classList.toggle('active', (i===0&&tab==='postes')||(i===1&&tab==='comp'));
-  });
-  document.getElementById('tab-postes').classList.toggle('active', tab==='postes');
-  document.getElementById('tab-comp').classList.toggle('active', tab==='comp');
-  if (tab==='comp' && !window._compChartsBuilt) buildCompCharts();
-}
-
-// ===================== COMPARISON DATA =====================
-const COMP_DATA = [
-  {"cidade":"CAMPINA GRANDE - PB","estado":"PB","usados":22443,"pagos":3225,"diff":-19218,"pct":14.4,"valorPago":20672.25},
-  {"cidade":"GARANHUNS - PE","estado":"PE","usados":8010,"pagos":5553,"diff":-2457,"pct":69.3,"valorPago":40703.49},
-  {"cidade":"GUARABIRA - PB","estado":"PB","usados":4901,"pagos":1062,"diff":-3839,"pct":21.7,"valorPago":6807.42},
-  {"cidade":"CAICO - RN","estado":"RN","usados":4766,"pagos":4764,"diff":-2,"pct":100.0,"valorPago":30156.12},
-  {"cidade":"EXTREMOZ - RN","estado":"RN","usados":4421,"pagos":3992,"diff":-429,"pct":90.3,"valorPago":25269.36},
-  {"cidade":"SENHOR DO BONFIM","estado":"BA","usados":3841,"pagos":1443,"diff":-2398,"pct":37.6,"valorPago":8109.66},
-  {"cidade":"IRECÊ","estado":"BA","usados":3382,"pagos":1287,"diff":-2095,"pct":38.1,"valorPago":7232.94},
-  {"cidade":"CAJAZEIRAS - PB","estado":"PB","usados":3348,"pagos":40,"diff":-3308,"pct":1.2,"valorPago":256.40},
-  {"cidade":"JACOBINA","estado":"BA","usados":3233,"pagos":3067,"diff":-166,"pct":94.9,"valorPago":17236.54},
-  {"cidade":"NATAL - RN","estado":"RN","usados":3185,"pagos":2849,"diff":-336,"pct":89.5,"valorPago":18020.67},
-  {"cidade":"SOUSA - PB","estado":"PB","usados":2976,"pagos":1209,"diff":-1767,"pct":40.6,"valorPago":7753.71},
-  {"cidade":"TOUROS","estado":"RN","usados":2955,"pagos":2955,"diff":0,"pct":100.0,"valorPago":18700.65},
-  {"cidade":"BELO JARDIM - PE","estado":"PE","usados":2743,"pagos":145,"diff":-2598,"pct":5.3,"valorPago":1062.85},
-  {"cidade":"CONDE","estado":"PB","usados":2694,"pagos":1113,"diff":-1581,"pct":41.3,"valorPago":7138.53},
-  {"cidade":"NISIA FLORESTA","estado":"RN","usados":2599,"pagos":2536,"diff":-63,"pct":97.6,"valorPago":16044.96},
-  {"cidade":"PARELHAS","estado":"RN","usados":2593,"pagos":2593,"diff":0,"pct":100.0,"valorPago":16413.39},
-  {"cidade":"CAPIM GROSSO","estado":"BA","usados":2544,"pagos":1360,"diff":-1184,"pct":53.5,"valorPago":7642.40},
-  {"cidade":"SANTA CRUZ - RN","estado":"RN","usados":2527,"pagos":2527,"diff":0,"pct":100.0,"valorPago":15996.39},
-  {"cidade":"NOVA CRUZ - RN","estado":"RN","usados":2489,"pagos":2426,"diff":-63,"pct":97.5,"valorPago":15352.98},
-  {"cidade":"JOÃO PESSOA","estado":"PE","usados":2488,"pagos":2488,"diff":0,"pct":100.0,"valorPago":18240.64},
-  {"cidade":"LAJEDO - PE","estado":"PE","usados":2338,"pagos":1530,"diff":-808,"pct":65.4,"valorPago":11214.90},
-  {"cidade":"CEARÁ-MIRIM - RN","estado":"RN","usados":2244,"pagos":2244,"diff":0,"pct":100.0,"valorPago":14202.84},
-  {"cidade":"SÃO JOSÉ DE MIPIBU - RN","estado":"RN","usados":2232,"pagos":2232,"diff":0,"pct":100.0,"valorPago":14126.64},
-  {"cidade":"MONTEIRO - PB","estado":"PB","usados":2178,"pagos":870,"diff":-1308,"pct":40.0,"valorPago":5578.50},
-  {"cidade":"AFOGADOS DA INGAZEIRA - PE","estado":"PE","usados":1990,"pagos":1190,"diff":-800,"pct":59.8,"valorPago":8724.70},
-  {"cidade":"CANGUARETAMA - RN","estado":"RN","usados":1990,"pagos":1990,"diff":0,"pct":100.0,"valorPago":12596.70},
-  {"cidade":"QUEIMADAS -PB","estado":"PB","usados":1926,"pagos":625,"diff":-1301,"pct":32.5,"valorPago":4007.50},
-  {"cidade":"GOIANINHA - RN","estado":"RN","usados":1897,"pagos":1897,"diff":0,"pct":100.0,"valorPago":12004.29},
-  {"cidade":"PATOS - PB","estado":"PB","usados":1858,"pagos":690,"diff":-1168,"pct":37.1,"valorPago":4423.50},
-  {"cidade":"AREIA BRANCA - RN","estado":"RN","usados":1855,"pagos":1855,"diff":0,"pct":100.0,"valorPago":11738.15},
-  {"cidade":"CURRAIS NOVOS","estado":"RN","usados":1837,"pagos":1786,"diff":-51,"pct":97.2,"valorPago":11302.46},
-  {"cidade":"ITABAIANA - PB","estado":"PB","usados":1807,"pagos":700,"diff":-1107,"pct":38.7,"valorPago":4490.00},
-  {"cidade":"PARNAMIRIM - RN","estado":"RN","usados":1766,"pagos":1766,"diff":0,"pct":100.0,"valorPago":11178.18},
-  {"cidade":"SANTA RITA - PB","estado":"PB","usados":1740,"pagos":590,"diff":-1150,"pct":33.9,"valorPago":3782.90},
-  {"cidade":"MACAÍBA - RN","estado":"RN","usados":1726,"pagos":1726,"diff":0,"pct":100.0,"valorPago":10924.06},
-  {"cidade":"MOSSORÓ - RN","estado":"RN","usados":1700,"pagos":1700,"diff":0,"pct":100.0,"valorPago":10762.00},
-  {"cidade":"ARARUNA - PB","estado":"PB","usados":1682,"pagos":487,"diff":-1195,"pct":29.0,"valorPago":3124.07},
-  {"cidade":"APODI - RN","estado":"RN","usados":1656,"pagos":1600,"diff":-56,"pct":96.6,"valorPago":10128.00},
-  {"cidade":"SAO BENTO - PB","estado":"PB","usados":1618,"pagos":410,"diff":-1208,"pct":25.3,"valorPago":2630.10},
-  {"cidade":"CARUARU - PE","estado":"PE","usados":1559,"pagos":490,"diff":-1069,"pct":31.4,"valorPago":3592.70},
-  {"cidade":"PAU DOS FERROS - RN","estado":"RN","usados":1553,"pagos":1553,"diff":0,"pct":100.0,"valorPago":9827.49},
-  {"cidade":"PEDRAS DE FOGO - PB","estado":"PB","usados":1539,"pagos":580,"diff":-959,"pct":37.7,"valorPago":3721.80},
-  {"cidade":"POMBAL - PB","estado":"PB","usados":1516,"pagos":562,"diff":-954,"pct":37.1,"valorPago":3604.58},
-  {"cidade":"RIACHO DE SANTANA","estado":"BA","usados":1472,"pagos":1090,"diff":-382,"pct":74.1,"valorPago":6126.10},
-  {"cidade":"MULUNGU DO MORRO","estado":"BA","usados":1421,"pagos":1095,"diff":-326,"pct":77.1,"valorPago":6153.90},
-  {"cidade":"ITAPORANGA - PB","estado":"PB","usados":1387,"pagos":489,"diff":-898,"pct":35.3,"valorPago":3135.39},
-  {"cidade":"PIANCÓ - PB","estado":"PB","usados":1371,"pagos":520,"diff":-851,"pct":37.9,"valorPago":3336.40},
-  {"cidade":"CARAÚBAS - RN","estado":"RN","usados":1344,"pagos":1344,"diff":0,"pct":100.0,"valorPago":8508.48},
-  {"cidade":"MAMANGUAPE - PB","estado":"PB","usados":1332,"pagos":461,"diff":-871,"pct":34.6,"valorPago":2957.01},
-  {"cidade":"SERRINHA - BA","estado":"BA","usados":554,"pagos":390,"diff":-164,"pct":70.4,"valorPago":2191.50},
-  {"cidade":"SAO BENTO DO UNA","estado":"PE","usados":800,"pagos":1611,"diff":811,"pct":201.4,"valorPago":11808.63},
-  {"cidade":"BREJO DA MADRE DE DEUS - PE","estado":"PE","usados":485,"pagos":410,"diff":-75,"pct":84.5,"valorPago":3005.30},
-  {"cidade":"VERTENTES - PE","estado":"PE","usados":481,"pagos":481,"diff":0,"pct":100.0,"valorPago":3525.33}
-];
-
-// By Estado
-const COMP_ESTADO = [
-  {estado:"PB", usados:80765, pagos:15800},
-  {estado:"RN", usados:78228, pagos:73471},
-  {estado:"BA", usados:31524, pagos:14690},
-  {estado:"PE", usados:25721, pagos:11796},
-  {estado:"CE", usados:644,   pagos:0}
-];
-
-// ===================== COMPARISON CHARTS =====================
-function buildCompCharts() {
-  window._compChartsBuilt = true;
-
-  const ESTADO_COLORS_USED = {PB:'#2563eb', RN:'#10b981', BA:'#f59e0b', PE:'#ef4444', CE:'#8b5cf6'};
-
-  // Grouped bar: usado vs pago por estado
-  new Chart(document.getElementById('compEstadoChart'), {
-    type: 'bar',
-    data: {
-      labels: COMP_ESTADO.map(d => d.estado),
-      datasets: [
-        {
-          label: 'Usados',
-          data: COMP_ESTADO.map(d => d.usados),
-          backgroundColor: '#2563ebaa',
-          borderColor: '#2563eb',
-          borderWidth: 1, borderRadius: 4
-        },
-        {
-          label: 'Pagos',
-          data: COMP_ESTADO.map(d => d.pagos),
-          backgroundColor: '#10b981aa',
-          borderColor: '#10b981',
-          borderWidth: 1, borderRadius: 4
-        }
+function renderCompCharts(byEstado) {
+  if (compEstInst) compEstInst.destroy();
+  compEstInst = new Chart(document.getElementById('compEstadoChart'), {
+    type:'bar',
+    data:{
+      labels: byEstado.map(d=>d.estado),
+      datasets:[
+        {label:'Usados', data:byEstado.map(d=>d.usados), backgroundColor:'#2563ebaa', borderColor:'#2563eb', borderWidth:1, borderRadius:4},
+        {label:'Pagos',  data:byEstado.map(d=>d.pagos),  backgroundColor:'#10b981aa', borderColor:'#10b981', borderWidth:1, borderRadius:4}
       ]
     },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { labels: { color: '#94a3b8', font:{size:11} } },
-        tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.raw.toLocaleString('pt-BR') } }
-      },
-      scales: {
-        x: { grid:{color:'transparent'}, ticks:{color:'#94a3b8'} },
-        y: { grid:{color:'#1e3a5f'}, ticks:{color:'#64748b', callback: v => v.toLocaleString('pt-BR')} }
-      }
-    }
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+c.raw.toLocaleString('pt-BR')}}},
+      scales:{x:{grid:{color:'transparent'},ticks:{color:'#94a3b8'}},y:{grid:{color:'#1e3a5f'},ticks:{color:'#64748b',callback:v=>v.toLocaleString('pt-BR')}}}}
   });
 
-  // Horizontal bar: % regularizado por estado
-  const pctData = COMP_ESTADO.map(d => parseFloat((d.pagos/d.usados*100).toFixed(1)));
-  new Chart(document.getElementById('pctEstadoChart'), {
-    type: 'bar',
-    data: {
-      labels: COMP_ESTADO.map(d => d.estado),
-      datasets: [{
-        label: '% Regularizado',
-        data: pctData,
-        backgroundColor: pctData.map(v => v>=90?'#10b981aa':v>=50?'#f59e0baa':'#ef4444aa'),
-        borderColor:     pctData.map(v => v>=90?'#10b981':v>=50?'#f59e0b':'#ef4444'),
-        borderWidth: 1, borderRadius: 4
-      }]
+  if (pctEstInst) pctEstInst.destroy();
+  const pcts = byEstado.map(d=>d.usados>0?parseFloat((d.pagos/d.usados*100).toFixed(1)):0);
+  pctEstInst = new Chart(document.getElementById('pctEstadoChart'), {
+    type:'bar',
+    data:{
+      labels:byEstado.map(d=>d.estado),
+      datasets:[{label:'% Regularizado', data:pcts,
+        backgroundColor:pcts.map(v=>v>=90?'#10b981aa':v>=50?'#f59e0baa':'#ef4444aa'),
+        borderColor:pcts.map(v=>v>=90?'#10b981':v>=50?'#f59e0b':'#ef4444'),
+        borderWidth:1,borderRadius:4}]
     },
-    options: {
-      indexAxis: 'y',
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: {display:false},
-        tooltip: { callbacks: { label: ctx => ' ' + ctx.raw + '% regularizado' } }
-      },
-      scales: {
-        x: { min:0, max:105, grid:{color:'#1e3a5f'}, ticks:{color:'#64748b', callback: v => v+'%'} },
-        y: { grid:{color:'transparent'}, ticks:{color:'#e2e8f0', font:{size:13, weight:'bold'}} }
-      }
-    }
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.raw+'%'}}},
+      scales:{x:{min:0,max:105,grid:{color:'#1e3a5f'},ticks:{color:'#64748b',callback:v=>v+'%'}},
+              y:{grid:{color:'transparent'},ticks:{color:'#e2e8f0',font:{size:13,weight:'bold'}}}}}
   });
 }
 
-// ===================== COMPARISON TABLE =====================
-let compSortKey = 'usados', compSortDir = -1, compPage = 1;
-
 function getCompFiltered() {
-  const q = document.getElementById('compSearch').value.toLowerCase();
-  const est = document.getElementById('compEstadoFilter').value;
-  const status = document.getElementById('compStatusFilter').value;
-  return COMP_DATA.filter(d => {
+  const q  = document.getElementById('compSearch').value.toLowerCase();
+  const ev = document.getElementById('compEstadoFilter').value;
+  const sv = document.getElementById('compStatusFilter').value;
+  return DATA_COMP.filter(d => {
     if (q && !d.cidade.toLowerCase().includes(q)) return false;
-    if (est && d.estado !== est) return false;
-    if (status === 'ok' && d.pct < 90) return false;
-    if (status === 'parcial' && (d.pct < 30 || d.pct >= 90)) return false;
-    if (status === 'critico' && (d.pct === 0 || d.pct >= 30)) return false;
-    if (status === 'zero' && d.pct > 0) return false;
+    if (ev && d.estado !== ev) return false;
+    if (sv==='ok'      && d.pct < 90) return false;
+    if (sv==='parcial' && (d.pct<30||d.pct>=90)) return false;
+    if (sv==='critico' && (d.pct===0||d.pct>=30)) return false;
+    if (sv==='zero'    && d.pct > 0) return false;
     return true;
   });
 }
 
 function statusBadge(pct) {
-  if (pct >= 90) return `<span style="font-size:.68rem;padding:2px 8px;border-radius:4px;font-weight:600;background:#064e3b;color:#10b981">✓ Regular</span>`;
-  if (pct >= 50) return `<span style="font-size:.68rem;padding:2px 8px;border-radius:4px;font-weight:600;background:#451a03;color:#f59e0b">~ Parcial</span>`;
-  if (pct > 0)   return `<span style="font-size:.68rem;padding:2px 8px;border-radius:4px;font-weight:600;background:#450a0a;color:#ef4444">⚠ Crítico</span>`;
-  return `<span style="font-size:.68rem;padding:2px 8px;border-radius:4px;font-weight:600;background:#1e1e1e;color:#64748b">— Sem dado</span>`;
+  if (pct>=90) return `<span class="badge-ok">✓ Regular</span>`;
+  if (pct>=50) return `<span class="badge-parcial">~ Parcial</span>`;
+  if (pct>0)   return `<span class="badge-critico">⚠ Crítico</span>`;
+  return `<span class="badge-zero">— Sem dado</span>`;
 }
 
 function renderCompTable() {
   const filtered = getCompFiltered();
   const total = filtered.length;
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const pages = Math.max(1, Math.ceil(total/PAGE_SIZE));
   compPage = Math.min(compPage, pages);
   const slice = filtered.slice((compPage-1)*PAGE_SIZE, compPage*PAGE_SIZE);
-
-  document.getElementById('compTableBody').innerHTML = slice.map(d => {
-    const diffColor = d.diff === 0 ? '#10b981' : d.diff > 0 ? '#a78bfa' : '#ef4444';
-    const diffStr = d.diff > 0 ? '+'+d.diff.toLocaleString('pt-BR') : d.diff.toLocaleString('pt-BR');
-    return `<tr>
-      <td class="cidade">${d.cidade}</td>
-      <td>${d.estado}</td>
-      <td class="num">${d.usados.toLocaleString('pt-BR')}</td>
-      <td class="num" style="color:#10b981">${d.pagos.toLocaleString('pt-BR')}</td>
-      <td class="num" style="color:${diffColor}">${diffStr}</td>
-      <td class="num">
-        <span style="font-weight:700;color:${d.pct>=90?'#10b981':d.pct>=50?'#f59e0b':'#ef4444'}">${d.pct}%</span>
-        <span class="bar-wrap"><span class="bar-fill" style="width:${Math.min(d.pct,100)}%;background:${d.pct>=90?'#10b981':d.pct>=50?'#f59e0b':'#ef4444'}"></span></span>
-      </td>
-      <td>${statusBadge(d.pct)}</td>
-    </tr>`;
+  document.getElementById('compBody').innerHTML = slice.map(d => {
+    const dc = d.diff===0?'#10b981':d.diff>0?'#a78bfa':'#ef4444';
+    const ds = d.diff>0?'+'+d.diff.toLocaleString('pt-BR'):d.diff.toLocaleString('pt-BR');
+    const pc = d.pct>=90?'#10b981':d.pct>=50?'#f59e0b':'#ef4444';
+    return `<tr><td class="cidade">${d.cidade}</td><td>${d.estado}</td><td class="num">${d.usados.toLocaleString('pt-BR')}</td><td class="num" style="color:#10b981">${d.pagos.toLocaleString('pt-BR')}</td><td class="num" style="color:${dc}">${ds}</td><td class="num"><span style="font-weight:700;color:${pc}">${d.pct}%</span><span class="bar-wrap"><span class="bar-fill" style="width:${Math.min(d.pct,100)}%;background:${pc}"></span></span></td><td>${statusBadge(d.pct)}</td></tr>`;
   }).join('');
-
-  document.getElementById('compPageInfo').textContent = `${total} município${total!==1?'s':''} · Página ${compPage} de ${pages}`;
-  document.getElementById('compPrevBtn').disabled = compPage <= 1;
-  document.getElementById('compNextBtn').disabled = compPage >= pages;
-  let nums = '';
-  for (let p=Math.max(1,compPage-2); p<=Math.min(pages,compPage+2); p++) {
-    nums += `<button onclick="compGoPage(${p})" class="${p===compPage?'active':''}">${p}</button>`;
-  }
+  document.getElementById('compPageInfo').textContent = `${total} municípios · Pg ${compPage}/${pages}`;
+  document.getElementById('compPrev').disabled = compPage<=1;
+  document.getElementById('compNext').disabled = compPage>=pages;
+  let nums='';
+  for(let p=Math.max(1,compPage-2);p<=Math.min(pages,compPage+2);p++) nums+=`<button onclick="compGoPage(${p})" class="${p===compPage?'active':''}">${p}</button>`;
   document.getElementById('compPageNums').innerHTML = nums;
 }
 
-function compChangePage(dir) { compPage += dir; renderCompTable(); }
-function compGoPage(p) { compPage = p; renderCompTable(); }
-function compSortBy(key) {
-  if (compSortKey===key) compSortDir*=-1; else { compSortKey=key; compSortDir=-1; }
-  COMP_DATA.sort((a,b) => typeof a[key]==='number' ? (a[key]-b[key])*compSortDir : (a[key]||'').localeCompare(b[key]||'')*compSortDir);
-  compPage=1; renderCompTable();
+function compSort(k) { if(compSortKey===k) compSortDir*=-1; else{compSortKey=k;compSortDir=-1;} DATA_COMP.sort((a,b)=>typeof a[k]==='number'?(a[k]-b[k])*compSortDir:(a[k]||'').localeCompare(b[k]||'')*compSortDir); compPage=1; renderCompTable(); }
+function compChangePage(d) { compPage+=d; renderCompTable(); }
+function compGoPage(p) { compPage=p; renderCompTable(); }
+
+document.getElementById('compSearch').addEventListener('input', ()=>{compPage=1;renderCompTable();});
+document.getElementById('compEstadoFilter').addEventListener('change', ()=>{compPage=1;renderCompTable();});
+document.getElementById('compStatusFilter').addEventListener('change', ()=>{compPage=1;renderCompTable();});
+
+// ===================== UI HELPERS =====================
+function setLoading(on) {
+  document.getElementById('loadingOverlay').style.display = on ? 'flex' : 'none';
+  const btn = document.getElementById('btnAtualizar');
+  btn.disabled = on;
+  document.getElementById('refreshIcon').textContent = on ? '⏳' : '🔄';
 }
 
-document.getElementById('compSearch').addEventListener('input', ()=>{ compPage=1; renderCompTable(); });
-document.getElementById('compEstadoFilter').addEventListener('change', ()=>{ compPage=1; renderCompTable(); });
-document.getElementById('compStatusFilter').addEventListener('change', ()=>{ compPage=1; renderCompTable(); });
+function showError(msg) {
+  const el = document.getElementById('errorBanner');
+  el.style.display = msg ? 'block' : 'none';
+  el.textContent = msg;
+}
 
-renderCompTable();
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active',(i===0&&tab==='postes')||(i===1&&tab==='comp')));
+  document.getElementById('tab-postes').classList.toggle('active', tab==='postes');
+  document.getElementById('tab-comp').classList.toggle('active', tab==='comp');
+}
+
+// ===================== INIT =====================
+loadAll();
 </script>
 </body>
 </html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
