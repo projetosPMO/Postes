@@ -342,44 +342,42 @@ function buildUsadosForCol(rows, colIdx) {
 }
 
 // ===================== PARSE PAGOS =====================
-function parsePagos(text, mesLabel) {
+function parsePagos(text) {
   const rows = parseCSV(text);
   const monthRow = rows[0];
 
-  // Find column index of selected month in pagos sheet
-  const monthCols = {};
-  monthRow.forEach((v, i) => { if (v.trim()) monthCols[v.trim().toLowerCase()] = i; });
-
-  // Build month key: "abr.-26" style — match against mesLabel which is like "30/4/2026"
-  // Parse mesLabel date
+  // Find abr.-26 column from SEL_MES_LABEL
   const [dd, mm, yyyy] = SEL_MES_LABEL.split('/').map(Number);
   const monthNames = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  const mesKey1 = `${monthNames[mm-1]}.-${String(yyyy).slice(2)}`;  // "abr.-26"
-  const mesKey2 = `${monthNames[mm-1]}/${String(yyyy).slice(2)}`;
+  const targetMonth = monthNames[mm-1] + '.-' + String(yyyy).slice(2); // e.g. "abr.-26"
 
-  let abrStart = -1;
-  for (const [k, v] of Object.entries(monthCols)) {
-    if (k.startsWith(monthNames[mm-1]) && k.includes(String(yyyy).slice(2))) {
-      abrStart = v; break;
-    }
-  }
-  if (abrStart === -1) {
-    // fallback: use last available month
-    const vals = Object.values(monthCols);
-    abrStart = vals[vals.length - 1];
+  let mesCol = -1;
+  monthRow.forEach((v,i) => { if (v.trim().toLowerCase() === targetMonth) mesCol = i; });
+  if (mesCol === -1) {
+    // fallback: last month with data
+    const vals = {};
+    monthRow.forEach((v,i) => { if (v.trim()) vals[i] = v.trim(); });
+    const keys = Object.keys(vals).map(Number).filter(k => k >= 9);
+    mesCol = keys[keys.length - 1] || 21;
   }
 
-  // ABR_QTY = abrStart, structure: qty, price, total, NF
+  // Build per-city map — exclude any row that is a total/subtotal
   const cityMap = {};
-  for (let i = 2; i < rows.length; i++) {
-    const row = rows[i];
-    const cidade = row[4] ? row[4].trim() : '';
-    const estado = row[5] ? row[5].trim() : '';
-    if (!cidade || cidade.toUpperCase().includes('TOTAL')) continue;
-    const qty = parseInt(row[abrStart]) || 0;
-    if (!cityMap[cidade]) cityMap[cidade] = { cidade, estado, qtdPago: 0 };
-    cityMap[cidade].qtdPago += qty;
-  }
+  rows.slice(2).forEach(r => {
+    const cidade = r[4] ? r[4].trim() : '';
+    const estado = r[5] ? r[5].trim() : '';
+    if (!cidade) return;
+    if (cidade.toUpperCase().includes('TOTAL')) return;  // skip TOTAL PAGO row
+    if (cidade.toUpperCase().includes('SUBTOTAL')) return;
+
+    const qty = parseInt(r[mesCol]) || 0;
+    if (!qty) return;
+
+    const key = normCity(cidade);
+    if (!key) return;
+    if (!cityMap[key]) cityMap[key] = { cidade, estado, qtdPago: 0 };
+    cityMap[key].qtdPago += qty;
+  });
 
   return Object.values(cityMap);
 }
