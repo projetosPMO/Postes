@@ -274,10 +274,24 @@ function parseCSV(text) {
   });
 }
 
+// Manual aliases for typos/different names between sheets
+const CITY_ALIASES = {
+  'GOIAININHA': 'GOIANINHA',
+  'ASSU': 'ACU',
+};
+
 function normCity(s) {
-  return s
-    .replace(/\s*\([^)]*\)/g, '')        // remove (BXO), (BACKBONE), etc
-    .replace(/[-–]\s*[A-Z]{2}\s*$/,'')   // remove trailing "- CE", "- RN", etc
+  let r = s;
+  r = r.replace(/\s*\([^)]*\)/g, '');
+  r = r.replace(/[-\u2013]\s*[A-Z]{2}\s*$/i, '');
+  r = r.replace(/\/.*$/i, '');
+  r = r.replace(/\s+[-\u2013]\s+.+$/, '');
+  r = r.replace(/[-\u2013]/g, ' ');
+  r = r.trim().toUpperCase()
+       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+       .replace(/\s+/g, ' ').trim();
+  return CITY_ALIASES[r] || r;
+}\s*$/,'')   // remove trailing "- CE", "- RN", etc
     .trim().toUpperCase()
     .normalize('NFD').replace(/[̀-͟]/g, '');
 }
