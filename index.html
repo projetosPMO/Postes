@@ -347,45 +347,48 @@ function parsePagos(text) {
   const rows = parseCSV(text);
   const monthRow = rows[0];
 
-  // Find abr.-26 column from SEL_MES_LABEL
+  // Find the column for the selected month
   const [dd, mm, yyyy] = SEL_MES_LABEL.split('/').map(Number);
   const monthNames = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  const targetMonth = monthNames[mm-1] + '.-' + String(yyyy).slice(2); // e.g. "abr.-26"
+  const targetMonth = monthNames[mm-1] + '.-' + String(yyyy).slice(2);
 
   let mesCol = -1;
   monthRow.forEach((v,i) => { if (v.trim().toLowerCase() === targetMonth) mesCol = i; });
   if (mesCol === -1) {
-    // fallback: last month with data
-    const vals = {};
-    monthRow.forEach((v,i) => { if (v.trim()) vals[i] = v.trim(); });
-    const keys = Object.keys(vals).map(Number).filter(k => k >= 9);
-    mesCol = keys[keys.length - 1] || 21;
+    const keys = Object.entries(Object.fromEntries(monthRow.map((v,i)=>[i,v]).filter(([,v])=>v.trim())))
+      .map(([k])=>Number(k)).filter(k=>k>=9);
+    mesCol = keys[keys.length-1] || 21;
   }
 
-  // Build per-city map — exclude any row that is a total/subtotal
+  // Read grand total directly from TOTAL PAGO row
+  let grandTotalPago = 0;
+  rows.forEach(r => {
+    if ((r[4]||'').trim().toUpperCase() === 'TOTAL PAGO') {
+      grandTotalPago = parseInt(r[mesCol]) || 0;
+    }
+  });
+
+  // Build per-city map — exclude total/subtotal rows
   const cityMap = {};
   rows.slice(2).forEach(r => {
     const cidade = r[4] ? r[4].trim() : '';
-    const estado = r[5] ? r[5].trim() : '';
-    if (!cidade) return;
-    if (cidade.toUpperCase().includes('TOTAL')) return;  // skip TOTAL PAGO row
-    if (cidade.toUpperCase().includes('SUBTOTAL')) return;
-
+    if (!cidade || cidade.toUpperCase().includes('TOTAL') || cidade.toUpperCase().includes('SUBTOTAL')) return;
     const qty = parseInt(r[mesCol]) || 0;
     if (!qty) return;
-
     const key = normCity(cidade);
     if (!key) return;
-    if (!cityMap[key]) cityMap[key] = { cidade, estado, qtdPago: 0 };
+    if (!cityMap[key]) cityMap[key] = { cidade, estado: r[5]||'', qtdPago: 0 };
     cityMap[key].qtdPago += qty;
   });
 
-  return Object.values(cityMap);
+  return { cities: Object.values(cityMap), grandTotalPago };
 }
 
 function buildComparison(usadosData, pagosData) {
+  const { cities, grandTotalPago } = pagosData;
+
   const pagosMap = {};
-  pagosData.forEach(p => {
+  cities.forEach(p => {
     const key = normCity(p.cidade);
     if (!pagosMap[key]) pagosMap[key] = 0;
     pagosMap[key] += p.qtdPago;
@@ -405,7 +408,7 @@ function buildComparison(usadosData, pagosData) {
     byEstado[r.estado].pagos  += r.pagos;
   });
 
-  return { comp, byEstado: Object.values(byEstado).sort((a,b)=>b.usados-a.usados) };
+  return { comp, byEstado: Object.values(byEstado).sort((a,b)=>b.usados-a.usados), grandTotalPago };
 }
 
 // ===================== MAIN LOAD =====================
@@ -458,13 +461,13 @@ function applyMes() {
   DATA_USADOS = data;
   DATA_ESTADO_USADOS = byEstado;
 
-  const pagosData = parsePagos(window._pagosTxt, SEL_MES_LABEL);
-  const { comp, byEstado: byEstComp } = buildComparison(data, pagosData);
+  const pagosResult = parsePagos(window._pagosTxt);
+  const { comp, byEstado: byEstComp, grandTotalPago } = buildComparison(data, pagosResult);
   DATA_COMP = comp;
   DATA_ESTADO_COMP = byEstComp;
 
   updateTab1(data, grandTotal, byEstado, mes.label);
-  updateTab2(comp, byEstComp, grandTotal);
+  updateTab2(comp, byEstComp, grandTotal, grandTotalPago);
 }
 
 function formatMes(label) {
@@ -589,9 +592,9 @@ document.getElementById('estadoFilter').addEventListener('change', ()=>{curPage=
 document.getElementById('tipoFilter').addEventListener('change', ()=>{curPage=1;renderTable();});
 
 // ===================== TAB 2 RENDER =====================
-function updateTab2(comp, byEstado, grandTotal) {
+function updateTab2(comp, byEstado, grandTotal, grandTotalPago) {
   const totalUsados = comp.reduce((s,d)=>s+d.usados,0);
-  const totalPagos  = comp.reduce((s,d)=>s+d.pagos,0);
+  const totalPagos  = grandTotalPago > 0 ? grandTotalPago : comp.reduce((s,d)=>s+d.pagos,0);
   const pct = totalUsados > 0 ? (totalPagos/totalUsados*100).toFixed(1) : 0;
   const sem = totalUsados - totalPagos;
 
