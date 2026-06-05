@@ -367,15 +367,9 @@ function parsePagos(text) {
     }
   });
 
-  // Two-pass: 
-  // Pass 1: collect rows WITH CNPJ (primary contract rows)
-  // Pass 2: collect rows WITHOUT CNPJ only if city not already in map
+  // Sum all rows per city (excluding TOTAL rows)
   const cityMap = {};
-
-  // Pass 1 — rows with CNPJ
   rows.slice(2).forEach(r => {
-    const cnpj = r[0] ? r[0].trim() : '';
-    if (!cnpj) return;
     const cidade = r[4] ? r[4].trim() : '';
     if (!cidade || cidade.toUpperCase().includes('TOTAL')) return;
     const qty = parseInt(r[mesCol]) || 0;
@@ -384,19 +378,6 @@ function parsePagos(text) {
     if (!key) return;
     if (!cityMap[key]) cityMap[key] = { cidade, estado: r[5]||'', qtdPago: 0 };
     cityMap[key].qtdPago += qty;
-  });
-
-  // Pass 2 — rows WITHOUT CNPJ (only if city not yet seen)
-  rows.slice(2).forEach(r => {
-    const cnpj = r[0] ? r[0].trim() : '';
-    if (cnpj) return;
-    const cidade = r[4] ? r[4].trim() : '';
-    if (!cidade || cidade.toUpperCase().includes('TOTAL')) return;
-    const qty = parseInt(r[mesCol]) || 0;
-    if (!qty) return;
-    const key = normCity(cidade);
-    if (!key || cityMap[key]) return; // skip if already counted via CNPJ row
-    cityMap[key] = { cidade, estado: r[5]||'', qtdPago: qty };
   });
 
   return { cities: Object.values(cityMap), grandTotalPago };
