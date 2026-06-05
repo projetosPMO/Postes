@@ -415,10 +415,14 @@ async function loadAll() {
   showError('');
   try {
     // Fetch both sheets
-    const [usadosTxt, pagosTxt] = await Promise.all([
-      fetchCSV(SHEET_USADOS_ID, SHEET_USADOS_GID),
-      fetchCSV(SHEET_PAGOS_ID,  SHEET_PAGOS_GID)
-    ]);
+    // Fetch usados (required) and pagos (optional - dashboard works without it)
+    const usadosTxt = await fetchCSV(SHEET_USADOS_ID, SHEET_USADOS_GID);
+    let pagosTxt = '';
+    try {
+      pagosTxt = await fetchCSV(SHEET_PAGOS_ID, SHEET_PAGOS_GID);
+    } catch(e) {
+      console.warn('Planilha de pagos não acessível:', e.message);
+    }
 
     // Parse usados months
     const usadosParsed = parseUsados(usadosTxt);
