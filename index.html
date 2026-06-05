@@ -249,8 +249,8 @@
 // ===================== CONFIG =====================
 const SHEET_USADOS_ID = '161Wvv28F2mCviN2CQsZEpsJAkQJBiqBO';
 const SHEET_USADOS_GID = '1861973021';
-const SHEET_PAGOS_ID = '1QdEK6J507qlDwIRODP--3X8wd6YdK8CQ';
-const SHEET_PAGOS_GID = '1607696209';
+const SHEET_PAGOS_ID = '1glnqAenEjCqrqlkX9864IPO-QUb_zqA6';
+const SHEET_PAGOS_GID = '1861973021';
 const ESTADO_COLORS = {PB:'#2563eb',RN:'#10b981',BA:'#f59e0b',PE:'#ef4444',CE:'#8b5cf6'};
 const PAGE_SIZE = 25;
 
@@ -345,38 +345,37 @@ function buildUsadosForCol(rows, colIdx) {
 // ===================== PARSE PAGOS =====================
 function parsePagos(text) {
   const rows = parseCSV(text);
-  const monthRow = rows[0];
+  const headers = rows[0];
 
-  // Find the column for the selected month
-  const [dd, mm, yyyy] = SEL_MES_LABEL.split('/').map(Number);
-  const monthNames = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  const targetMonth = monthNames[mm-1] + '.-' + String(yyyy).slice(2);
-
+  // Same structure as usados: col2=CIDADE, col4=Estado
+  // Find the column matching the selected month (same logic as usados)
   let mesCol = -1;
-  monthRow.forEach((v,i) => { if (v.trim().toLowerCase() === targetMonth) mesCol = i; });
+  headers.forEach((h, i) => {
+    if (h.trim() === SEL_MES_LABEL) mesCol = i;
+  });
+  // Fallback: last date column
   if (mesCol === -1) {
-    const keys = monthRow.map((v,i)=>v.trim()?i:-1).filter(i=>i>=9);
-    mesCol = keys[keys.length-1] || 21;
+    headers.forEach((h, i) => {
+      if (/\d{1,2}\/\d{1,2}\/\d{4}/.test(h.trim())) mesCol = i;
+    });
   }
 
-  // Read grand total directly from TOTAL PAGO row
+  // Read grand total from TOTAL EM USO row
   let grandTotalPago = 0;
-  rows.forEach(r => {
-    if ((r[4]||'').trim().toUpperCase() === 'TOTAL PAGO') {
-      grandTotalPago = parseInt(r[mesCol]) || 0;
-    }
-  });
-
-  // Sum all rows per city (excluding TOTAL rows)
   const cityMap = {};
-  rows.slice(2).forEach(r => {
-    const cidade = r[4] ? r[4].trim() : '';
-    if (!cidade || cidade.toUpperCase().includes('TOTAL')) return;
-    const qty = parseInt(r[mesCol]) || 0;
+
+  rows.slice(1).forEach(r => {
+    const cidade = r[2] ? r[2].trim() : '';
+    const estado = r[4] ? r[4].trim() : '';
+    const qty    = parseInt(r[mesCol]) || 0;
+
+    if (!cidade || cidade === 'CIDADE') return;
+    if (cidade === 'TOTAL EM USO') { grandTotalPago = qty; return; }
     if (!qty) return;
+
     const key = normCity(cidade);
     if (!key) return;
-    if (!cityMap[key]) cityMap[key] = { cidade, estado: r[5]||'', qtdPago: 0 };
+    if (!cityMap[key]) cityMap[key] = { cidade, estado, qtdPago: 0 };
     cityMap[key].qtdPago += qty;
   });
 
