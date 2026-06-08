@@ -826,4 +826,36 @@ function renderCompTable() {
   document.getElementById('compPageNums').innerHTML = nums;
 }
 
-function compSort(k) { if(compSortKey===k) compSortDir*=-1; else{compSortKey=k;compSortDir=-1;} DATA_COMP.sort((a,b)=>typeof a[k]==='number'?(a[k]-b[k])*compSortDir:(a[k
+function compSort(k) { if(compSortKey===k) compSortDir*=-1; else{compSortKey=k;compSortDir=-1;} DATA_COMP.sort((a,b)=>typeof a[k]==='number'?(a[k]-b[k])*compSortDir:(a[k]<b[k]?-1:1)*compSortDir); compPage=1; renderCompTable(); }
+function compChangePage(d) { compPage+=d; renderCompTable(); }
+function compGoPage(p) { compPage=p; renderCompTable(); }
+
+document.getElementById('compSearch').addEventListener('input', ()=>{compPage=1;renderCompTable();});
+document.getElementById('compEstadoFilter').addEventListener('change', ()=>{compPage=1;renderCompTable();});
+document.getElementById('compStatusFilter').addEventListener('change', ()=>{compPage=1;renderCompTable();});
+
+// ===================== UI HELPERS =====================
+function setLoading(on) {
+  document.getElementById('loadingOverlay').style.display = on ? 'flex' : 'none';
+  const btn = document.getElementById('btnAtualizar');
+  btn.disabled = on;
+  document.getElementById('refreshIcon').textContent = on ? '⏳' : '🔄';
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorBanner');
+  el.style.display = msg ? 'block' : 'none';
+  el.textContent = msg;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active',(i===0&&tab==='postes')||(i===1&&tab==='comp')));
+  document.getElementById('tab-postes').classList.toggle('active', tab==='postes');
+  document.getElementById('tab-comp').classList.toggle('active', tab==='comp');
+}
+
+// ===================== INIT =====================
+loadAll();
+</script>
+</body>
+</html>
