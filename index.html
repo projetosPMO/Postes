@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<!-- v4 -->
+<!-- v6 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Postes por Município — PROXXIMA</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -347,7 +347,6 @@ function parsePagos(text) {
   const rows = parseCSV(text);
   const monthRow = rows[0];
 
-  // Find the column matching the selected month ("abr.-26" format)
   const [dd, mm, yyyy] = SEL_MES_LABEL.split('/').map(Number);
   const monthNames = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
   const targetMonth = monthNames[mm-1] + '.-' + String(yyyy).slice(2);
@@ -359,15 +358,11 @@ function parsePagos(text) {
     mesCol = keys[keys.length-1] || 21;
   }
 
-  // Read grand total from TOTAL PAGO row
   let grandTotalPago = 0;
   rows.forEach(r => {
-    if ((r[4]||'').trim().toUpperCase() === 'TOTAL PAGO') {
-      grandTotalPago = parseInt(r[mesCol]) || 0;
-    }
+    if ((r[4]||'').trim().toUpperCase() === 'TOTAL PAGO') grandTotalPago = parseInt(r[mesCol]) || 0;
   });
 
-  // Sum all rows per city (col4=cidade, col5=estado)
   const cityMap = {};
   rows.slice(2).forEach(r => {
     const cidade = r[4] ? r[4].trim() : '';
