@@ -206,7 +206,13 @@
 
     <div class="charts-row-2">
       <div class="card">
-        <h2>Usado vs Pago por Estado</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+          <h2 style="margin:0">Usado vs Pago por Estado</h2>
+          <div style="display:flex;align-items:center;gap:6px;font-size:0.82em;color:#94a3b8">
+            <span>Ref. Pagos:</span>
+            <select id="pagosSelect" class="filter-sel" onchange="onPagosMesChange()" style="padding:3px 6px;font-size:0.9em;min-width:90px"></select>
+          </div>
+        </div>
         <div style="height:280px;position:relative"><canvas id="compEstadoChart"></canvas></div>
       </div>
       <div class="card">
@@ -343,22 +349,30 @@ function buildUsadosForCol(rows, colIdx) {
 }
 
 // ===================== PARSE PAGOS =====================
-function parsePagos(text) {
+function parsePagos(text, forceMonth) {
+  if (!text) return { cities: [], grandTotalPago: 0, pagosMes: '—', byEstadoDirect: {}, availableMonths: [] };
   const rows = parseCSV(text);
   const monthRow = rows[0];
   const monthNames = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 
-  // Use mai.-26 (last complete month before current date)
-  const now = new Date();
-  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const targetMonth = monthNames[prev.getMonth()] + '.-' + String(prev.getFullYear()).slice(2);
+  // Find all month columns available in the sheet
+  const availableMonths = [];
+  monthRow.forEach((v, i) => {
+    if (/^[a-z]{3}\.-\d{2}$/i.test(v.trim())) availableMonths.push({ label: v.trim().toLowerCase(), col: i });
+  });
+
+  // Determine target month: use forceMonth if provided, else previous calendar month
+  let targetMonth = forceMonth;
+  if (!targetMonth) {
+    const now = new Date();
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    targetMonth = monthNames[prev.getMonth()] + '.-' + String(prev.getFullYear()).slice(2);
+  }
 
   let mesCol = -1;
   monthRow.forEach((v,i) => { if (v.trim().toLowerCase() === targetMonth) mesCol = i; });
-  if (mesCol === -1) {
-    // Fallback: use last available month column
-    monthRow.forEach((v,i) => { if (/[a-z]{3}\.-\d{2}/i.test(v.trim())) mesCol = i; });
-  }
+  // Fallback: use last available month column
+  if (mesCol === -1 && availableMonths.length > 0) mesCol = availableMonths[availableMonths.length - 1].col;
   if (mesCol === -1) mesCol = 21;
 
   let grandTotalPago = 0;
@@ -367,22 +381,26 @@ function parsePagos(text) {
   });
 
   const cityMap = {};
+  const byEstadoDirect = {};
   rows.slice(2).forEach(r => {
     const cidade = r[4] ? r[4].trim() : '';
+    const estado = (r[5] || '').trim();
     if (!cidade || cidade.toUpperCase().includes('TOTAL')) return;
     const qty = parseInt(r[mesCol]) || 0;
     if (!qty) return;
+    // Accumulate directly by estado (no normalization needed — exact total)
+    if (estado) byEstadoDirect[estado] = (byEstadoDirect[estado] || 0) + qty;
     const key = normCity(cidade);
     if (!key) return;
-    if (!cityMap[key]) cityMap[key] = { cidade, estado: r[5]||'', qtdPago: 0 };
+    if (!cityMap[key]) cityMap[key] = { cidade, estado, qtdPago: 0 };
     cityMap[key].qtdPago += qty;
   });
 
-  return { cities: Object.values(cityMap), grandTotalPago, pagosMes: targetMonth };
+  return { cities: Object.values(cityMap), grandTotalPago, pagosMes: targetMonth, byEstadoDirect, availableMonths };
 }
 
 function buildComparison(usadosData, pagosData) {
-  const { cities, grandTotalPago, pagosMes } = pagosData;
+  const { cities, grandTotalPago, pagosMes, byEstadoDirect } = pagosData;
 
   const pagosMap = {};
   cities.forEach(p => {
@@ -391,7 +409,7 @@ function buildComparison(usadosData, pagosData) {
     pagosMap[key] += p.qtdPago;
   });
 
-  // City-level table (same pagos city may appear for multiple usados sub-entries, OK for per-city view)
+  // City-level table: match pagos to usados by normalized city name
   const comp = usadosData.map(u => {
     const norm = normCity(u.cidade);
     const pagos = pagosMap[norm] || 0;
@@ -399,31 +417,17 @@ function buildComparison(usadosData, pagosData) {
     return { cidade: u.cidade, estado: u.estado, usados: u.total, pagos, diff: pagos - u.total, pct };
   });
 
-  // byEstado for chart: sum usados normally, but assign each pagos normCity ONCE
-  // (avoids double-counting when multiple usados raw entries share the same normCity)
+  // byEstado chart: usados from usados data, pagos taken DIRECTLY from pagos sheet sums by estado
+  // (avoids any matching loss — all pagos cities counted regardless of usados presence)
   const byEstado = {};
   usadosData.forEach(u => {
     const est = u.estado;
     if (!byEstado[est]) byEstado[est] = {estado: est, usados: 0, pagos: 0};
     byEstado[est].usados += u.total;
   });
-
-  // Map normCity → first-matched estado from usados
-  const normToEstado = {};
-  usadosData.forEach(u => {
-    const key = normCity(u.cidade);
-    if (!normToEstado[key]) normToEstado[key] = u.estado;
-  });
-
-  // Assign each pagos normCity to its estado exactly once
-  const assigned = new Set();
-  Object.entries(pagosMap).forEach(([key, qty]) => {
-    if (assigned.has(key)) return;
-    const est = normToEstado[key];
-    if (!est) return;
-    assigned.add(key);
+  Object.entries(byEstadoDirect || {}).forEach(([est, qty]) => {
     if (!byEstado[est]) byEstado[est] = {estado: est, usados: 0, pagos: 0};
-    byEstado[est].pagos += qty;
+    byEstado[est].pagos = qty;
   });
 
   return { comp, byEstado: Object.values(byEstado).sort((a,b)=>b.usados-a.usados), grandTotalPago, pagosMes };
@@ -450,7 +454,7 @@ async function loadAll() {
     window._usadosRows = usadosParsed.rows;
     window._pagosTxt = pagosTxt;
 
-    // Populate month selector
+    // Populate usados month selector
     const sel = document.getElementById('mesSelect');
     sel.innerHTML = '';
     MESES_USADOS.forEach((m, i) => {
@@ -460,6 +464,28 @@ async function loadAll() {
       if (i === MESES_USADOS.length - 1) opt.selected = true;
       sel.appendChild(opt);
     });
+
+    // Populate pagos month selector from pagos sheet headers
+    if (pagosTxt) {
+      const tmpPagos = parsePagos(pagosTxt);
+      const pagosMonths = tmpPagos.availableMonths;
+      const pagosNow = new Date();
+      const pagosPrev = new Date(pagosNow.getFullYear(), pagosNow.getMonth() - 1, 1);
+      const monthNames2 = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+      const defaultMes = monthNames2[pagosPrev.getMonth()] + '.-' + String(pagosPrev.getFullYear()).slice(2);
+      const pagosSelEl = document.getElementById('pagosSelect');
+      pagosSelEl.innerHTML = '';
+      pagosMonths.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.label;
+        opt.textContent = m.label.replace('.-', '/').replace(/(\w+)\/(\d{2})/, (_, mo, yr) => {
+          const idx2 = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'].indexOf(mo);
+          return ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][idx2] + '/20' + yr;
+        });
+        if (m.label === defaultMes) opt.selected = true;
+        pagosSelEl.appendChild(opt);
+      });
+    }
 
     applyMes();
     document.getElementById('lastUpdate').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
@@ -471,6 +497,12 @@ async function loadAll() {
 }
 
 function onMesChange() { applyMes(); }
+function onPagosMesChange() { applyPagosMes(); }
+
+function getSelectedPagosMes() {
+  const el = document.getElementById('pagosSelect');
+  return el && el.value ? el.value : null;
+}
 
 function applyMes() {
   const idx = parseInt(document.getElementById('mesSelect').value);
@@ -483,12 +515,25 @@ function applyMes() {
   DATA_USADOS = data;
   DATA_ESTADO_USADOS = byEstado;
 
-  const pagosResult = parsePagos(window._pagosTxt);
+  const pagosMesSel = getSelectedPagosMes();
+  const pagosResult = parsePagos(window._pagosTxt, pagosMesSel);
   const { comp, byEstado: byEstComp, grandTotalPago, pagosMes } = buildComparison(data, pagosResult);
   DATA_COMP = comp;
   DATA_ESTADO_COMP = byEstComp;
 
   updateTab1(data, grandTotal, byEstado, mes.label);
+  updateTab2(comp, byEstComp, grandTotal, grandTotalPago, pagosMes);
+}
+
+function applyPagosMes() {
+  if (!DATA_USADOS || !window._pagosTxt) return;
+  const pagosMesSel = getSelectedPagosMes();
+  const pagosResult = parsePagos(window._pagosTxt, pagosMesSel);
+  const { data: usadosData } = buildUsadosForCol(window._usadosRows, SEL_COL);
+  const grandTotal = usadosData.reduce((s, d) => s + d.total, 0);
+  const { comp, byEstado: byEstComp, grandTotalPago, pagosMes } = buildComparison(usadosData, pagosResult);
+  DATA_COMP = comp;
+  DATA_ESTADO_COMP = byEstComp;
   updateTab2(comp, byEstComp, grandTotal, grandTotalPago, pagosMes);
 }
 
@@ -781,37 +826,4 @@ function renderCompTable() {
   document.getElementById('compPageNums').innerHTML = nums;
 }
 
-function compSort(k) { if(compSortKey===k) compSortDir*=-1; else{compSortKey=k;compSortDir=-1;} DATA_COMP.sort((a,b)=>typeof a[k]==='number'?(a[k]-b[k])*compSortDir:(a[k]||'').localeCompare(b[k]||'')*compSortDir); compPage=1; renderCompTable(); }
-function compChangePage(d) { compPage+=d; renderCompTable(); }
-function compGoPage(p) { compPage=p; renderCompTable(); }
-
-document.getElementById('compSearch').addEventListener('input', ()=>{compPage=1;renderCompTable();});
-document.getElementById('compEstadoFilter').addEventListener('change', ()=>{compPage=1;renderCompTable();});
-document.getElementById('compStatusFilter').addEventListener('change', ()=>{compPage=1;renderCompTable();});
-
-// ===================== UI HELPERS =====================
-function setLoading(on) {
-  document.getElementById('loadingOverlay').style.display = on ? 'flex' : 'none';
-  const btn = document.getElementById('btnAtualizar');
-  btn.disabled = on;
-  document.getElementById('refreshIcon').textContent = on ? '⏳' : '🔄';
-}
-
-function showError(msg) {
-  const el = document.getElementById('errorBanner');
-  el.style.display = msg ? 'block' : 'none';
-  el.textContent = msg;
-}
-
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active',(i===0&&tab==='postes')||(i===1&&tab==='comp')));
-  document.getElementById('tab-postes').classList.toggle('active', tab==='postes');
-  document.getElementById('tab-comp').classList.toggle('active', tab==='comp');
-}
-
-// ===================== INIT =====================
-loadAll();
-</script>
-</body>
-</html>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+function compSort(k) { if(compSortKey===k) compSortDir*=-1; else{compSortKey=k;compSortDir=-1;} DATA_COMP.sort((a,b)=>typeof a[k]==='number'?(a[k]-b[k])*compSortDir:(a[k
