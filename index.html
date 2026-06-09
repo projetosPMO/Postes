@@ -327,7 +327,7 @@ function buildUsadosForCol(rows, colIdx) {
   let grandTotal = 0;
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
-    const cidade = row[2] ? row[2].trim() : '';
+    const cidade = (row[3] || row[2] || '').trim(); // col D preferido, fallback col C
     const estado = row[4] ? row[4].trim() : '';
     const tipo   = row[1] ? row[1].trim() : '';
     const val    = parseInt(row[colIdx]) || 0;
@@ -853,7 +853,6 @@ function switchTab(tab) {
   document.getElementById('tab-postes').classList.toggle('active', tab==='postes');
   document.getElementById('tab-comp').classList.toggle('active', tab==='comp');
 }
-
 // ===================== INIT =====================
 loadAll();
 </script>
