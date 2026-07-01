@@ -249,6 +249,51 @@
     </div>
     <div class="data-ref" id="ref2">—</div>
   </div>
+
+  <!-- TAB 3: Valor 100% -->
+  <div class="tab-panel" id="tab-fin">
+    <div class="kpi-row">
+      <div class="kpi"><div class="label">Valor Atual Pago</div><div class="value" id="fk1" style="color:#10b981">—</div><div class="sub" id="fk1sub">—</div></div>
+      <div class="kpi"><div class="label">Valor p/ 100% Postes</div><div class="value" id="fk2" style="color:#60a5fa">—</div><div class="sub">Se todos fossem pagos</div></div>
+      <div class="kpi"><div class="label">Diferença</div><div class="value" id="fk3" style="color:#f59e0b">—</div><div class="sub">Valor ainda não pago</div></div>
+      <div class="kpi"><div class="label">% Regularizado (R$)</div><div class="value" id="fk4" style="color:#a78bfa">—</div><div class="sub">Atual / Potencial</div></div>
+    </div>
+
+    <div class="table-section" style="margin-bottom:16px">
+      <div class="table-header"><h2>Por Estado</h2></div>
+      <table><thead><tr>
+        <th>Estado</th>
+        <th style="text-align:right">Usados</th>
+        <th style="text-align:right">Pagos</th>
+        <th style="text-align:right">Valor Atual</th>
+        <th style="text-align:right">Valor 100%</th>
+        <th style="text-align:right">Gap</th>
+        <th style="text-align:right">% Pago (R$)</th>
+      </tr></thead><tbody id="finEstadoBody"></tbody></table>
+    </div>
+
+    <div class="table-section">
+      <div class="table-header">
+        <h2>Por Município</h2>
+        <div class="filters">
+          <input type="text" id="finSearch" placeholder="🔍 Buscar município...">
+          <select class="filter-sel" id="finEstadoFilter"><option value="">Todos os estados</option></select>
+        </div>
+      </div>
+      <table><thead><tr>
+        <th onclick="finSort('cidade')">Município ↕</th>
+        <th onclick="finSort('estado')">Estado ↕</th>
+        <th onclick="finSort('usados')" style="text-align:right">Usados ↕</th>
+        <th onclick="finSort('pagos')" style="text-align:right">Pagos ↕</th>
+        <th style="text-align:right">Valor Unit.</th>
+        <th onclick="finSort('valorAtual')" style="text-align:right">Valor Atual ↕</th>
+        <th onclick="finSort('valor100')" style="text-align:right">Valor 100% ↕</th>
+        <th onclick="finSort('gap')" style="text-align:right">Gap ↕</th>
+      </tr></thead><tbody id="finBody"></tbody></table>
+      <div class="pagination"><span id="finPageInfo"></span><div class="page-btns"><button id="finPrev" onclick="finChangePage(-1)">‹</button><span id="finPageNums"></span><button id="finNext" onclick="finChangePage(1)">›</button></div></div>
+    </div>
+    <div class="data-ref" id="ref3">—</div>
+  </div>
 </div>
 
 <script>
@@ -388,12 +433,20 @@ function parsePagos(text, forceMonth) {
     if (!cidade || cidade.toUpperCase().includes('TOTAL')) return;
     const qty = parseInt(r[mesCol]) || 0;
     if (!qty) return;
-    // Accumulate directly by estado (no normalization needed — exact total)
     if (estado) byEstadoDirect[estado] = (byEstadoDirect[estado] || 0) + qty;
     const key = normCity(cidade);
     if (!key) return;
-    if (!cityMap[key]) cityMap[key] = { cidade, estado, qtdPago: 0 };
+    // Parse unit price: prefer current month col+1, fallback to col 7 (base price)
+    const parseBRL = s => { if(!s) return 0; const c=s.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.').trim(); return parseFloat(c)||0; };
+    const unitP = parseBRL(r[mesCol+1]) || parseBRL(r[7]) || 0;
+    const totalV = parseBRL(r[mesCol+2]) || (qty * unitP);
+    if (!cityMap[key]) cityMap[key] = { cidade, estado, qtdPago: 0, totalValorPago: 0, unitPrice: unitP };
     cityMap[key].qtdPago += qty;
+    cityMap[key].totalValorPago += totalV;
+    if (unitP && !cityMap[key].unitPrice) cityMap[key].unitPrice = unitP;
+  });
+  Object.values(cityMap).forEach(c => {
+    if (!c.unitPrice && c.qtdPago > 0) c.unitPrice = c.totalValorPago / c.qtdPago;
   });
 
   return { cities: Object.values(cityMap), grandTotalPago, pagosMes: targetMonth, byEstadoDirect, availableMonths };
@@ -432,6 +485,131 @@ function buildComparison(usadosData, pagosData) {
 
   return { comp, byEstado: Object.values(byEstado).sort((a,b)=>b.usados-a.usados), grandTotalPago, pagosMes };
 }
+
+
+// ===================== TAB 3: FINANCEIRO =====================
+let DATA_FIN = [];
+let finPage = 1, finSortKey = 'gap', finSortDir = -1;
+const FMT_BRL = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+function buildFinanceiro(usadosData, pagosData) {
+  const { cities, pagosMes } = pagosData;
+  // Build pagos map with financial data
+  const pagosFinMap = {};
+  cities.forEach(p => {
+    const key = normCity(p.cidade);
+    if (!pagosFinMap[key]) pagosFinMap[key] = { qtdPago: 0, totalValorPago: 0, unitPrice: p.unitPrice || 0 };
+    pagosFinMap[key].qtdPago += p.qtdPago;
+    pagosFinMap[key].totalValorPago += p.totalValorPago;
+    if (p.unitPrice && !pagosFinMap[key].unitPrice) pagosFinMap[key].unitPrice = p.unitPrice;
+  });
+
+  const rows = usadosData.map(u => {
+    const key = normCity(u.cidade);
+    const pf = pagosFinMap[key] || { qtdPago: 0, totalValorPago: 0, unitPrice: 0 };
+    const unitPrice = pf.unitPrice;
+    const valorAtual = pf.totalValorPago;
+    const valor100 = u.total * unitPrice;
+    const gap = valor100 - valorAtual;
+    return { cidade: u.cidade, estado: u.estado, usados: u.total, pagos: pf.qtdPago, unitPrice, valorAtual, valor100, gap };
+  });
+
+  // By estado
+  const byEstado = {};
+  rows.forEach(r => {
+    if (!byEstado[r.estado]) byEstado[r.estado] = { estado: r.estado, usados: 0, pagos: 0, valorAtual: 0, valor100: 0 };
+    const e = byEstado[r.estado];
+    e.usados += r.usados;
+    e.pagos += r.pagos;
+    e.valorAtual += r.valorAtual;
+    e.valor100 += r.valor100;
+  });
+
+  return { rows, byEstado: Object.values(byEstado).sort((a,b) => b.valor100 - a.valor100), pagosMes };
+}
+
+function updateTab3(fin) {
+  const { rows, byEstado, pagosMes } = fin;
+  DATA_FIN = rows;
+  finPage = 1;
+
+  const totalAtual = rows.reduce((s,r) => s + r.valorAtual, 0);
+  const total100   = rows.reduce((s,r) => s + r.valor100, 0);
+  const totalGap   = total100 - totalAtual;
+  const pctR       = total100 > 0 ? (totalAtual / total100 * 100).toFixed(1) : '—';
+  const mesFmt     = pagosMes ? pagosMes.replace('.-', '/') : '—';
+
+  document.getElementById('fk1').textContent = FMT_BRL(totalAtual);
+  document.getElementById('fk1sub').textContent = 'Referência: ' + mesFmt;
+  document.getElementById('fk2').textContent = FMT_BRL(total100);
+  document.getElementById('fk3').textContent = FMT_BRL(totalGap);
+  document.getElementById('fk4').textContent = pctR + '%';
+  document.getElementById('ref3').textContent = 'Fonte: Planilha Postes Pagos · Referência: ' + mesFmt;
+
+  // Estado table
+  document.getElementById('finEstadoBody').innerHTML = byEstado.map(e => {
+    const gap = e.valor100 - e.valorAtual;
+    const pct = e.valor100 > 0 ? (e.valorAtual / e.valor100 * 100).toFixed(1) : '—';
+    const col = ESTADO_COLORS[e.estado] || '#60a5fa';
+    return `<tr>
+      <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col};margin-right:6px"></span><strong>${e.estado}</strong></td>
+      <td class="num">${e.usados.toLocaleString('pt-BR')}</td>
+      <td class="num">${e.pagos.toLocaleString('pt-BR')}</td>
+      <td class="num">${FMT_BRL(e.valorAtual)}</td>
+      <td class="num" style="color:#60a5fa">${FMT_BRL(e.valor100)}</td>
+      <td class="num" style="color:#f59e0b">${FMT_BRL(gap)}</td>
+      <td class="num">${pct}%</td>
+    </tr>`;
+  }).join('');
+
+  // Estado filter
+  const estSel = document.getElementById('finEstadoFilter');
+  estSel.innerHTML = '<option value="">Todos os estados</option>';
+  byEstado.forEach(e => { const o=document.createElement('option'); o.value=e.estado; o.textContent=e.estado; estSel.appendChild(o); });
+
+  renderFinTable();
+}
+
+function getFinFiltered() {
+  const search = (document.getElementById('finSearch').value || '').toLowerCase();
+  const est    = document.getElementById('finEstadoFilter').value;
+  return DATA_FIN.filter(r =>
+    (!search || r.cidade.toLowerCase().includes(search)) &&
+    (!est || r.estado === est)
+  ).sort((a,b) => typeof a[finSortKey]==='number' ? (a[finSortKey]-b[finSortKey])*finSortDir : (a[finSortKey]<b[finSortKey]?-1:1)*finSortDir);
+}
+
+function renderFinTable() {
+  const filtered = getFinFiltered();
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  finPage = Math.min(finPage, pages);
+  const slice = filtered.slice((finPage-1)*PAGE_SIZE, finPage*PAGE_SIZE);
+  document.getElementById('finBody').innerHTML = slice.map(r => `<tr>
+    <td class="cidade">${r.cidade}</td>
+    <td>${r.estado}</td>
+    <td class="num">${r.usados.toLocaleString('pt-BR')}</td>
+    <td class="num">${r.pagos.toLocaleString('pt-BR')}</td>
+    <td class="num" style="color:#94a3b8">${r.unitPrice ? FMT_BRL(r.unitPrice) : '—'}</td>
+    <td class="num">${r.valorAtual > 0 ? FMT_BRL(r.valorAtual) : '—'}</td>
+    <td class="num" style="color:#60a5fa">${r.valor100 > 0 ? FMT_BRL(r.valor100) : '—'}</td>
+    <td class="num" style="color:${r.gap>0?'#f59e0b':'#10b981'}">${r.valor100 > 0 ? FMT_BRL(r.gap) : '—'}</td>
+  </tr>`).join('');
+  document.getElementById('finPageInfo').textContent = `${filtered.length} municípios · Pg ${finPage}/${pages}`;
+  document.getElementById('finPrev').disabled = finPage <= 1;
+  document.getElementById('finNext').disabled = finPage >= pages;
+  let nums = '';
+  for(let p=Math.max(1,finPage-2);p<=Math.min(pages,finPage+2);p++) nums+=`<button onclick="finGoPage(${p})" class="${p===finPage?'active':''}">${p}</button>`;
+  document.getElementById('finPageNums').innerHTML = nums;
+}
+
+function finSort(k) { if(finSortKey===k) finSortDir*=-1; else{finSortKey=k;finSortDir=-1;} finPage=1; renderFinTable(); }
+function finChangePage(d) { finPage+=d; renderFinTable(); }
+function finGoPage(p) { finPage=p; renderFinTable(); }
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('finSearch').addEventListener('input', ()=>{finPage=1;renderFinTable();});
+  document.getElementById('finEstadoFilter').addEventListener('change', ()=>{finPage=1;renderFinTable();});
+});
 
 // ===================== MAIN LOAD =====================
 async function loadAll() {
@@ -523,6 +701,8 @@ function applyMes() {
 
   updateTab1(data, grandTotal, byEstado, mes.label);
   updateTab2(comp, byEstComp, grandTotal, grandTotalPago, pagosMes);
+  const fin = buildFinanceiro(data, pagosResult);
+  updateTab3(fin);
 }
 
 function applyPagosMes() {
@@ -535,6 +715,8 @@ function applyPagosMes() {
   DATA_COMP = comp;
   DATA_ESTADO_COMP = byEstComp;
   updateTab2(comp, byEstComp, grandTotal, grandTotalPago, pagosMes);
+  const fin2 = buildFinanceiro(usadosData, pagosResult);
+  updateTab3(fin2);
 }
 
 function formatMes(label) {
@@ -849,9 +1031,10 @@ function showError(msg) {
 }
 
 function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active',(i===0&&tab==='postes')||(i===1&&tab==='comp')));
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active',(i===0&&tab==='postes')||(i===1&&tab==='comp')||(i===2&&tab==='fin')));
   document.getElementById('tab-postes').classList.toggle('active', tab==='postes');
   document.getElementById('tab-comp').classList.toggle('active', tab==='comp');
+  document.getElementById('tab-fin').classList.toggle('active', tab==='fin');
 }
 // ===================== INIT =====================
 loadAll();
