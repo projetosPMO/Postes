@@ -495,20 +495,22 @@ const FMT_BRL = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2,
 
 function buildFinanceiro(usadosData, pagosData) {
   const { cities, pagosMes } = pagosData;
-  // Build pagos map with financial data
+  // Preço unitário fixo por estado (R$/poste/mês)
+  const UNIT_PRICE_ESTADO = { PE: 7.33, RN: 6.33, PB: 6.53, CE: 11.96, BA: 5.62 };
+
+  // Build pagos map (qty + valor atual pago)
   const pagosFinMap = {};
   cities.forEach(p => {
     const key = normCity(p.cidade);
-    if (!pagosFinMap[key]) pagosFinMap[key] = { qtdPago: 0, totalValorPago: 0, unitPrice: p.unitPrice || 0 };
+    if (!pagosFinMap[key]) pagosFinMap[key] = { qtdPago: 0, totalValorPago: 0 };
     pagosFinMap[key].qtdPago += p.qtdPago;
     pagosFinMap[key].totalValorPago += p.totalValorPago;
-    if (p.unitPrice && !pagosFinMap[key].unitPrice) pagosFinMap[key].unitPrice = p.unitPrice;
   });
 
   const rows = usadosData.map(u => {
     const key = normCity(u.cidade);
-    const pf = pagosFinMap[key] || { qtdPago: 0, totalValorPago: 0, unitPrice: 0 };
-    const unitPrice = pf.unitPrice;
+    const pf = pagosFinMap[key] || { qtdPago: 0, totalValorPago: 0 };
+    const unitPrice = UNIT_PRICE_ESTADO[u.estado] || 0;
     const valorAtual = pf.totalValorPago;
     const valor100 = u.total * unitPrice;
     const gap = valor100 - valorAtual;
@@ -518,7 +520,7 @@ function buildFinanceiro(usadosData, pagosData) {
   // By estado
   const byEstado = {};
   rows.forEach(r => {
-    if (!byEstado[r.estado]) byEstado[r.estado] = { estado: r.estado, usados: 0, pagos: 0, valorAtual: 0, valor100: 0 };
+    if (!byEstado[r.estado]) byEstado[r.estado] = { estado: r.estado, usados: 0, pagos: 0, valorAtual: 0, valor100: 0, unitPrice: UNIT_PRICE_ESTADO[r.estado] || 0 };
     const e = byEstado[r.estado];
     e.usados += r.usados;
     e.pagos += r.pagos;
